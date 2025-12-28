@@ -11,14 +11,21 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@react-three/drei": "^9.122.0",
+    "@react-three/fiber": "^8.18.0",
     "@supabase/supabase-js": "^2.86.0",
     "date-fns": "^3.6.0",
     "exceljs": "^4.4.0",
     "firebase": "^11.0.1",
+    "framer-motion": "^12.23.26",
     "jspdf": "^3.0.4",
+    "lottie-react": "^2.4.1",
+    "lucide-react": "^0.562.0",
     "next": "^14.2.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-tilt": "^1.0.2",
+    "three": "^0.182.0",
     "uuid": "^9.0.1"
   },
   "devDependencies": {

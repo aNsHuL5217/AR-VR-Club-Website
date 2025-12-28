@@ -5,26 +5,33 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/common/Navbar';
 import AdminSidebar from '@/components/admin/AdminSidebar';
+import { Download, RefreshCw } from 'lucide-react';
 
-interface Registration {
-  registration_id: string;
-  event_id: string;
-  user_id: string;
-  user_email: string;
-  year?: string;
-  dept?: string;
-  roll_no?: string;
-  timestamp: string;
-  status: 'confirmed' | 'cancelled';
-  // Event information
-  event_title?: string;
-  event_start_time?: string;
-}
+const formatDate = (dateString: string) => {
+  if (!dateString) return '-';
+  if (dateString.includes('/')) return dateString;
+  try {
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return dateString; 
+    return d.toLocaleString();
+  } catch {
+    return dateString;
+  }
+};
 
-interface Event {
-  id: string;
-  title: string;
+interface Registration { 
+    registration_id: string; 
+    event_id: string; 
+    user_id: string; 
+    user_email: string; 
+    year?: string; 
+    dept?: string; 
+    roll_no?: string; 
+    timestamp: string; 
+    status: 'confirmed'|'cancelled'; 
+    event_title?: string; 
 }
+interface Event { id: string; title: string; }
 
 export default function RegistrationsManagementPage() {
   const { authUser, loading: authLoading } = useAuth();
@@ -32,355 +39,174 @@ export default function RegistrationsManagementPage() {
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  // Filter states
-  const [filters, setFilters] = useState({
-    year: '',
-    dept: '',
-    eventId: '',
-    status: '',
-    search: '',
-  });
+  
+  const [filters, setFilters] = useState({ year: '', dept: '', eventId: '', status: '', search: '' });
 
   useEffect(() => {
-    if (!authLoading) {
-      if (!authUser) {
-        router.push('/login');
-      } else if (authUser.role !== 'admin') {
-        router.push('/dashboard');
+      if (!authLoading) {
+          if (!authUser) router.push('/login');
+          else if (authUser.role !== 'admin') router.push('/dashboard');
       }
-    }
   }, [authUser, authLoading, router]);
 
   useEffect(() => {
-    if (authUser?.role === 'admin') {
-      fetchData();
-      
-      // Auto-refresh every 30 seconds to catch new registrations
-      const interval = setInterval(() => {
-        fetchData();
-      }, 30000);
-      
-      return () => clearInterval(interval);
-    }
+      if (authUser?.role === 'admin') {
+          fetchData();
+          const interval = setInterval(fetchData, 30000);
+          return () => clearInterval(interval);
+      }
   }, [authUser]);
 
   const fetchData = async () => {
-    try {
-      setLoading(true);
-      setError('');
+      try {
+          setLoading(true);
+          const regRes = await fetch('/api/admin/registrations', { 
+              cache: 'no-store',
+              headers: { 'Cache-Control': 'no-cache' }
+          });
+          const regData = await regRes.json();
+          
+          if(regData.success) {
+              setRegistrations(regData.data);
+          }
+          
+          const evtRes = await fetch('/api/events', { cache: 'no-store' });
+          const evtData = await evtRes.json();
+          if(evtData.success) setEvents(evtData.data);
+      } catch(e: any) { 
+          console.error(e); 
+      } finally { 
+          setLoading(false); 
+      }
+  }
+
+  const handleExport = (format: 'excel' | 'pdf') => {
+      const params = new URLSearchParams({ type: 'registrations', format });
+      if(filters.year) params.append('year', filters.year);
+      if(filters.eventId) params.append('eventId', filters.eventId);
+      if(filters.dept) params.append('dept', filters.dept);
+      if(filters.status) params.append('status', filters.status);
+      if(filters.search) params.append('search', filters.search);
+      window.open(`/api/export?${params.toString()}`, '_blank');
+  }
+
+  const filteredRegistrations = registrations.filter(r => {
+      if(filters.year && r.year !== filters.year) return false;
+      if(filters.dept && r.dept !== filters.dept) return false;
+      if(filters.eventId && r.event_id !== filters.eventId) return false;
+      if(filters.status && r.status !== filters.status) return false;
       
-      // Fetch all registrations with event info (with cache-busting)
-      const regRes = await fetch('/api/admin/registrations', {
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache',
-        },
-      });
-      const regData = await regRes.json();
-      if (regData.success) {
-        setRegistrations(regData.data);
-      } else {
-        setError(regData.error || 'Failed to load registrations');
+      if(filters.search) {
+          const s = filters.search.toLowerCase();
+          return (
+              r.user_email?.toLowerCase().includes(s) || 
+              r.roll_no?.toLowerCase().includes(s) ||
+              r.event_title?.toLowerCase().includes(s) ||
+              r.year?.toLowerCase().includes(s) ||
+              r.dept?.toLowerCase().includes(s)
+          );
       }
-
-      // Fetch events for filter dropdown
-      const eventsRes = await fetch('/api/events', {
-        cache: 'no-store',
-      });
-      const eventsData = await eventsRes.json();
-      if (eventsData.success) {
-        setEvents(eventsData.data);
-      }
-    } catch (err: any) {
-      setError(err.message || 'Failed to load data');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Apply filters
-  const filteredRegistrations = registrations.filter((reg) => {
-    if (filters.year && reg.year !== filters.year) return false;
-    if (filters.dept && reg.dept !== filters.dept) return false;
-    if (filters.eventId && reg.event_id !== filters.eventId) return false;
-    if (filters.status && reg.status !== filters.status) return false;
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      return (
-        reg.user_email?.toLowerCase().includes(searchLower) ||
-        reg.roll_no?.toLowerCase().includes(searchLower) ||
-        reg.event_title?.toLowerCase().includes(searchLower) ||
-        reg.year?.toLowerCase().includes(searchLower) ||
-        reg.dept?.toLowerCase().includes(searchLower)
-      );
-    }
-    return true;
+      return true;
   });
 
-  const handleExport = async (format: 'excel' | 'pdf') => {
-    try {
-      // Build query string with filters
-      const params = new URLSearchParams({
-        type: 'registrations',
-        format: format,
-      });
-
-      if (filters.year) params.append('year', filters.year);
-      if (filters.dept) params.append('dept', filters.dept);
-      if (filters.eventId) params.append('eventId', filters.eventId);
-      if (filters.status) params.append('status', filters.status);
-      if (filters.search) params.append('search', filters.search);
-
-      const response = await fetch(`/api/export?${params.toString()}`);
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        const dateStr = new Date().toISOString().split('T')[0];
-        a.download = `registrations_${dateStr}.${format === 'excel' ? 'xlsx' : 'pdf'}`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url);
-        alert(`Successfully exported ${filteredRegistrations.length} registration(s) to ${format.toUpperCase()}!`);
-      } else {
-        const errorData = await response.json();
-        alert(`Export failed: ${errorData.error || 'Unknown error'}`);
-      }
-    } catch (error: any) {
-      alert(`Export failed: ${error.message || 'Network error'}`);
-      console.error('Export error:', error);
-    }
-  };
-
-  const clearFilters = () => {
-    setFilters({
-      year: '',
-      dept: '',
-      eventId: '',
-      status: '',
-      search: '',
-    });
-  };
-
-  // Get unique values for filter dropdowns
   const uniqueYears = Array.from(new Set(registrations.map(r => r.year).filter(Boolean))).sort();
   const uniqueDepts = Array.from(new Set(registrations.map(r => r.dept).filter(Boolean))).sort();
 
-  if (authLoading || loading) {
-    return (
-      <>
-        <Navbar />
-        <div className="loading">Loading...</div>
-      </>
-    );
-  }
+  if (loading && registrations.length === 0) return <><Navbar /><div className="container" style={{paddingTop:'6rem', textAlign:'center', color:'#94a3b8'}}>Loading...</div></>;
+  if (!authUser || authUser.role !== 'admin') return null;
 
-  if (!authUser || authUser.role !== 'admin') {
-    return null;
-  }
+  const thStyle = { padding: '12px 16px', textAlign: 'left' as const, borderBottom: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', fontSize: '0.85rem', textTransform: 'uppercase' as const };
+  const tdStyle = { padding: '16px', borderBottom: '1px solid rgba(255,255,255,0.05)', color: 'white', fontSize: '0.95rem' };
 
   return (
     <>
       <Navbar />
-      <div style={{ display: 'flex', minHeight: 'calc(100vh - 60px)' }}>
+      <div style={{ display: 'flex', minHeight: 'calc(100vh - 65px)', paddingTop: '65px' }}>
         <AdminSidebar />
-        <div style={{ marginLeft: '280px', flex: 1, padding: '2rem', backgroundColor: '#f9fafb', minHeight: 'calc(100vh - 60px)' }}>
+        <div style={{ marginLeft: '280px', flex: 1, padding: '2rem' }}>
           <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-              <div>
-                <h2 style={{ margin: 0, fontSize: '2rem', fontWeight: 'bold' }}>📝 Registration Management</h2>
-                <p style={{ margin: '0.5rem 0 0 0', color: '#6b7280' }}>View, filter, and export event registrations</p>
-              </div>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button
-              className="btn-outline"
-              onClick={fetchData}
-              disabled={loading}
-              style={{ padding: '8px 16px' }}
-              title="Refresh registrations"
-            >
-              🔄 {loading ? 'Refreshing...' : 'Refresh'}
-            </button>
-            <button
-              className="btn"
-              onClick={() => handleExport('excel')}
-              style={{ padding: '8px 16px' }}
-            >
-              📊 Export Excel
-            </button>
-            <button
-              className="btn-outline"
-              onClick={() => handleExport('pdf')}
-              style={{ padding: '8px 16px' }}
-            >
-              📄 Export PDF
-            </button>
-          </div>
-        </div>
 
-        {/* Filters */}
-        <div className="card" style={{ marginBottom: '2rem', padding: '1.5rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h3 style={{ marginTop: 0, margin: 0 }}>🔍 Filters</h3>
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-              <button
-                className="btn-outline"
-                onClick={clearFilters}
-                style={{ padding: '6px 12px', fontSize: '0.9rem' }}
-              >
-                Clear Filters
-              </button>
-              <p style={{ margin: 0, color: '#64748b', fontSize: '0.9rem' }}>
-                Showing <strong>{filteredRegistrations.length}</strong> of <strong>{registrations.length}</strong>
-              </p>
-            </div>
-          </div>
-          <div style={{ 
-            display: 'flex', 
-            flexWrap: 'wrap',
-            gap: '1rem',
-            alignItems: 'flex-end'
-          }}>
-            <div style={{ flex: '1 1 200px', minWidth: '150px' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 'bold' }}>
-                Search
-              </label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="Search by email, roll no, event..."
-                value={filters.search}
-                onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                style={{ width: '100%' }}
-              />
-            </div>
-            <div style={{ flex: '0 1 150px', minWidth: '120px' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 'bold' }}>
-                Year
-              </label>
-              <select
-                className="form-input"
-                value={filters.year}
-                onChange={(e) => setFilters({ ...filters, year: e.target.value })}
-                style={{ width: '100%' }}
-              >
-                <option value="">All Years</option>
-                {uniqueYears.map(year => (
-                  <option key={year} value={year}>{year}</option>
-                ))}
-              </select>
-            </div>
-            <div style={{ flex: '0 1 150px', minWidth: '120px' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 'bold' }}>
-                Department
-              </label>
-              <select
-                className="form-input"
-                value={filters.dept}
-                onChange={(e) => setFilters({ ...filters, dept: e.target.value })}
-                style={{ width: '100%' }}
-              >
-                <option value="">All Departments</option>
-                {uniqueDepts.map(dept => (
-                  <option key={dept} value={dept}>{dept}</option>
-                ))}
-              </select>
-            </div>
-            <div style={{ flex: '1 1 200px', minWidth: '150px' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 'bold' }}>
-                Event
-              </label>
-              <select
-                className="form-input"
-                value={filters.eventId}
-                onChange={(e) => setFilters({ ...filters, eventId: e.target.value })}
-                style={{ width: '100%' }}
-              >
-                <option value="">All Events</option>
-                {events.map(event => (
-                  <option key={event.ID} value={event.ID}>{event.Title}</option>
-                ))}
-              </select>
-            </div>
-            <div style={{ flex: '0 1 120px', minWidth: '100px' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 'bold' }}>
-                Status
-              </label>
-              <select
-                className="form-input"
-                value={filters.status}
-                onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                style={{ width: '100%' }}
-              >
-                <option value="">All Status</option>
-                <option value="confirmed">Confirmed</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
-            </div>
-          </div>
-        </div>
+             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+               <div>
+                 <h2 style={{ margin: 0, fontSize: '2rem', fontWeight: 'bold', color: 'white' }}>Registrations</h2>
+                 <p style={{ margin: '0.5rem 0 0 0', color: '#94a3b8' }}>
+                    Showing {filteredRegistrations.length} of {registrations.length} registrations
+                 </p>
+               </div>
+               <div style={{ display: 'flex', gap: '0.5rem' }}>
+                 <button className="btn-outline" onClick={fetchData} title="Refresh"><RefreshCw size={18}/></button>
+                 <button className="btn" onClick={() => handleExport('excel')}><Download size={18} style={{marginRight:'8px'}}/> Excel</button>
+                 <button className="btn-outline" onClick={() => handleExport('pdf')} title="PDF"><Download size={18}/></button>
+               </div>
+             </div>
 
-        {error && (
-          <div className="error" style={{ marginBottom: '1rem' }}>
-            {error}
-          </div>
-        )}
+             <div className="glass-card" style={{ marginBottom: '2rem', padding: '1.5rem' }}>
+                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                   <div style={{ flex: 1, minWidth: '200px' }}>
+                      <label style={{ display: 'block', marginBottom: '0.5rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Event</label>
+                      <select className="form-input" value={filters.eventId} onChange={(e) => setFilters({...filters, eventId: e.target.value})} style={{ marginBottom: 0 }}>
+                          <option value="" style={{color:'black'}}>All Events</option>
+                          {events.map(e => <option key={e.id} value={e.id} style={{color:'black'}}>{e.title}</option>)}
+                      </select>
+                   </div>
+                   <div style={{ flex: 1, minWidth: '150px' }}>
+                      <label style={{ display: 'block', marginBottom: '0.5rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Status</label>
+                      <select className="form-input" value={filters.status} onChange={(e) => setFilters({...filters, status: e.target.value})} style={{ marginBottom: 0 }}>
+                          <option value="" style={{color:'black'}}>All Status</option>
+                          <option value="confirmed" style={{color:'black'}}>Confirmed</option>
+                          <option value="cancelled" style={{color:'black'}}>Cancelled</option>
+                      </select>
+                   </div>
+                   <div style={{ flex: 1, minWidth: '200px' }}>
+                      <label style={{ display: 'block', marginBottom: '0.5rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Search</label>
+                      <input type="text" className="form-input" placeholder="Search..." value={filters.search} onChange={(e) => setFilters({...filters, search: e.target.value})} style={{ marginBottom: 0 }} />
+                   </div>
+                   <button className="btn-outline" onClick={() => setFilters({year:'', dept:'', eventId:'', status:'', search:''})} style={{ height: '46px' }}>Clear</button>
+                </div>
+             </div>
 
-        {/* Registrations Table */}
-        {filteredRegistrations.length === 0 ? (
-          <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
-            <p style={{ color: '#64748b', fontSize: '1.1rem' }}>
-              {registrations.length === 0 
-                ? 'No registrations found.' 
-                : 'No registrations match the current filters.'}
-            </p>
-          </div>
-        ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table className="data-table" style={{ width: '100%' }}>
-              <thead>
-                <tr>
-                  <th>Event Name</th>
-                  <th>User Email</th>
-                  <th>Year</th>
-                  <th>Department</th>
-                  <th>Roll No.</th>
-                  <th>Registered On</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredRegistrations.map((reg) => (
-                  <tr key={reg.registration_id}>
-                    <td style={{ fontWeight: 'bold' }}>
-                      {reg.event_title || 'Unknown Event'}
-                    </td>
-                    <td>{reg.user_email}</td>
-                    <td>{reg.year || 'N/A'}</td>
-                    <td>{reg.dept || 'N/A'}</td>
-                    <td>{reg.roll_no || 'N/A'}</td>
-                    <td>{new Date(reg.timestamp).toLocaleString()}</td>
-                    <td>
-                      <span className={`status-badge ${
-                        reg.status === 'confirmed' ? 'status-active' : 'status-closed'
-                      }`}>
-                        {reg.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+             <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
+               <div style={{ overflowX: 'auto' }}>
+                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                   <thead>
+                       <tr style={{ background: 'rgba(255,255,255,0.03)' }}>
+                           <th style={thStyle}>Event</th>
+                           <th style={thStyle}>User</th>
+                           <th style={thStyle}>Details</th>
+                           <th style={thStyle}>Date</th>
+                           <th style={thStyle}>Status</th>
+                       </tr>
+                   </thead>
+                   <tbody>
+                       {filteredRegistrations.length > 0 ? (
+                           filteredRegistrations.map(r => (
+                               <tr key={r.registration_id}>
+                                   <td style={{...tdStyle, fontWeight: 'bold'}}>{r.event_title || 'Unknown'}</td>
+                                   <td style={tdStyle}>{r.user_email || 'N/A'}</td>
+                                   <td style={tdStyle}>
+                                       <div>{r.year || '-'} / {r.dept || '-'}</div>
+                                       <div style={{fontSize:'0.8rem', color:'#94a3b8'}}>{r.roll_no}</div>
+                                   </td>
+                                   <td style={tdStyle}>{formatDate(r.timestamp)}</td>
+                                   <td style={tdStyle}>
+                                       <span className={`status-badge ${r.status === 'confirmed' ? 'status-active' : 'status-closed'}`}>{r.status}</span>
+                                   </td>
+                               </tr>
+                           ))
+                       ) : (
+                           <tr>
+                               <td colSpan={5} style={{...tdStyle, textAlign:'center', padding:'2rem', color:'#94a3b8'}}>
+                                   No registrations found.
+                               </td>
+                           </tr>
+                       )}
+                   </tbody>
+                 </table>
+               </div>
+             </div>
           </div>
         </div>
       </div>
     </>
   );
 }
-
