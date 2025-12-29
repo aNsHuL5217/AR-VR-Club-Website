@@ -3,7 +3,14 @@
 import React from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { User, Calendar, Users, ClipboardList, MessageSquare } from 'lucide-react';
+import { 
+  UserIcon, 
+  CalendarBlankIcon, 
+  UsersIcon, 
+  ClipboardTextIcon, 
+  ChatIcon, 
+  WrenchIcon 
+} from '@phosphor-icons/react/dist/ssr';
 
 interface SidebarItem {
   label: string;
@@ -12,11 +19,11 @@ interface SidebarItem {
 }
 
 const sidebarItems: SidebarItem[] = [
-  { label: 'Profile', path: '/admin', icon: <User size={20} /> },
-  { label: 'Event Management', path: '/admin/events', icon: <Calendar size={20} /> },
-  { label: 'Member Management', path: '/admin/members', icon: <Users size={20} /> },
-  { label: 'Registrations', path: '/admin/registrations', icon: <ClipboardList size={20} /> },
-  { label: 'Club Inquiry', path: '/admin/inquiries', icon: <MessageSquare size={20} /> },
+  { label: 'Profile', path: '/admin', icon: <UserIcon size={20} weight="duotone" /> },
+  { label: 'Event Management', path: '/admin/events', icon: <CalendarBlankIcon size={20} weight="duotone" /> },
+  { label: 'Member Management', path: '/admin/members', icon: <UsersIcon size={20} weight="duotone" /> },
+  { label: 'Registrations', path: '/admin/registrations', icon: <ClipboardTextIcon size={20} weight="duotone" /> },
+  { label: 'Club Inquiry', path: '/admin/inquiries', icon: <ChatIcon size={20} weight="duotone" /> },
 ];
 
 export default function AdminSidebar() {
@@ -49,7 +56,7 @@ export default function AdminSidebar() {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 0 15px rgba(59, 130, 246, 0.4)', color: 'white', fontSize: '1.2rem'
           }}>
-            🔧
+            <WrenchIcon size={24} weight="duotone" color="white" />
           </div>
           <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 'bold', color: 'white' }}>
             Admin Panel

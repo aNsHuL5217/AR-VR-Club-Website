@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/common/Navbar';
 import AdminSidebar from '@/components/admin/AdminSidebar';
-import { Download, RefreshCw } from 'lucide-react';
+import { DownloadSimpleIcon, ArrowsClockwiseIcon } from '@phosphor-icons/react/dist/ssr';
 
 const formatDate = (dateString: string) => {
   if (!dateString) return '-';
@@ -130,13 +130,13 @@ export default function RegistrationsManagementPage() {
                <div>
                  <h2 style={{ margin: 0, fontSize: '2rem', fontWeight: 'bold', color: 'white' }}>Registrations</h2>
                  <p style={{ margin: '0.5rem 0 0 0', color: '#94a3b8' }}>
-                    Showing {filteredRegistrations.length} of {registrations.length} registrations
+                   Showing {filteredRegistrations.length} of {registrations.length} registrations
                  </p>
                </div>
                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                 <button className="btn-outline" onClick={fetchData} title="Refresh"><RefreshCw size={18}/></button>
-                 <button className="btn" onClick={() => handleExport('excel')}><Download size={18} style={{marginRight:'8px'}}/> Excel</button>
-                 <button className="btn-outline" onClick={() => handleExport('pdf')} title="PDF"><Download size={18}/></button>
+                 <button className="btn-outline" onClick={fetchData} title="Refresh"><ArrowsClockwiseIcon size={18} /></button>
+                 <button className="btn" onClick={() => handleExport('excel')}><DownloadSimpleIcon size={18}  style={{marginRight:'8px'}}/> Excel</button>
+                 <button className="btn-outline" onClick={() => handleExport('pdf')} title="PDF"><DownloadSimpleIcon size={18} /></button>
                </div>
              </div>
 

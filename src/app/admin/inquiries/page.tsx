@@ -5,7 +5,12 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/common/Navbar';
 import AdminSidebar from '@/components/admin/AdminSidebar';
-import { Trash2, Copy, Search, RefreshCw, MessageSquare } from 'lucide-react';
+import { 
+  TrashIcon, 
+  CopyIcon, 
+  MagnifyingGlassIcon, 
+  ArrowsClockwiseIcon, 
+} from '@phosphor-icons/react/dist/ssr';
 
 interface Inquiry { id: string; name: string; email: string; message: string; status: 'pending'|'read'|'replied'|'resolved'; created_at: string; updated_at: string; }
 
@@ -89,7 +94,7 @@ export default function InquiriesManagementPage() {
                 <p style={{ margin: '0.5rem 0 0 0', color: '#94a3b8' }}>Manage incoming messages</p>
               </div>
               <button className="btn-outline" onClick={fetchData} disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <RefreshCw size={16} className={loading ? 'spin' : ''} /> Refresh
+                <ArrowsClockwiseIcon size={16} className={loading ? 'spin' : ''} /> Refresh
               </button>
             </div>
 
@@ -110,7 +115,7 @@ export default function InquiriesManagementPage() {
                     <label style={{ display: 'block', marginBottom: '0.5rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Search</label>
                     <div style={{ position: 'relative' }}>
                         <input type="text" className="form-input" placeholder="Search name, email..." value={filters.search} onChange={(e) => setFilters({...filters, search: e.target.value})} style={{ marginBottom: 0, paddingLeft: '35px' }} />
-                        <Search size={18} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+                        <MagnifyingGlassIcon size={18} weight="duotone" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
                     </div>
                  </div>
                  <div style={{ width: '200px' }}>
@@ -129,51 +134,51 @@ export default function InquiriesManagementPage() {
             <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
                <div style={{ overflowX: 'auto' }}>
                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead>
-                        <tr style={{ background: 'rgba(255,255,255,0.03)' }}>
-                            <th style={thStyle}>Name</th>
-                            <th style={thStyle}>Message</th>
-                            <th style={thStyle}>Status</th>
-                            <th style={thStyle}>Date</th>
-                            <th style={thStyle}>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredInquiries.map(inq => (
-                            <tr key={inq.id}>
-                                <td style={tdStyle}>
-                                    <div style={{fontWeight:'bold'}}>{inq.name}</div>
-                                    <div style={{fontSize:'0.85rem', color:'#60a5fa'}}>{inq.email}</div>
-                                </td>
-                                <td style={{...tdStyle, maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#cbd5e1'}} title={inq.message}>
-                                    {inq.message}
-                                </td>
-                                <td style={tdStyle}>
-                                    <select 
-                                        value={inq.status} 
-                                        onChange={(e) => handleStatusChange(inq.id, e.target.value)}
-                                        style={{ background: 'transparent', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '4px 8px', borderRadius: '6px' }}
-                                    >
-                                        <option value="pending" style={{color:'black'}}>Pending</option>
-                                        <option value="read" style={{color:'black'}}>Read</option>
-                                        <option value="resolved" style={{color:'black'}}>Resolved</option>
-                                    </select>
-                                </td>
-                                <td style={tdStyle}>{new Date(inq.created_at).toLocaleDateString()}</td>
-                                <td style={tdStyle}>
-                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                        <button className="btn-outline" onClick={() => {navigator.clipboard.writeText(inq.message); alert('Copied!')}} style={{ padding: '6px' }} title="Copy Message">
-                                            <Copy size={16} />
-                                        </button>
-                                        <button className="btn-outline" onClick={() => handleDelete(inq.id, inq.name)} style={{ padding: '6px', color: '#ef4444', borderColor: '#ef4444' }} title="Delete">
-                                            <Trash2 size={16} />
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                        {filteredInquiries.length === 0 && <tr><td colSpan={5} style={{...tdStyle, textAlign:'center', color:'#94a3b8', padding:'3rem'}}>No inquiries found.</td></tr>}
-                    </tbody>
+                   <thead>
+                       <tr style={{ background: 'rgba(255,255,255,0.03)' }}>
+                           <th style={thStyle}>Name</th>
+                           <th style={thStyle}>Message</th>
+                           <th style={thStyle}>Status</th>
+                           <th style={thStyle}>Date</th>
+                           <th style={thStyle}>Actions</th>
+                       </tr>
+                   </thead>
+                   <tbody>
+                       {filteredInquiries.map(inq => (
+                           <tr key={inq.id}>
+                               <td style={tdStyle}>
+                                   <div style={{fontWeight:'bold'}}>{inq.name}</div>
+                                   <div style={{fontSize:'0.85rem', color:'#60a5fa'}}>{inq.email}</div>
+                               </td>
+                               <td style={{...tdStyle, maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#cbd5e1'}} title={inq.message}>
+                                   {inq.message}
+                               </td>
+                               <td style={tdStyle}>
+                                   <select 
+                                       value={inq.status} 
+                                       onChange={(e) => handleStatusChange(inq.id, e.target.value)}
+                                       style={{ background: 'transparent', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '4px 8px', borderRadius: '6px' }}
+                                   >
+                                       <option value="pending" style={{color:'black'}}>Pending</option>
+                                       <option value="read" style={{color:'black'}}>Read</option>
+                                       <option value="resolved" style={{color:'black'}}>Resolved</option>
+                                   </select>
+                               </td>
+                               <td style={tdStyle}>{new Date(inq.created_at).toLocaleDateString()}</td>
+                               <td style={tdStyle}>
+                                   <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                       <button className="btn-outline" onClick={() => {navigator.clipboard.writeText(inq.message); alert('Copied!')}} style={{ padding: '6px' }} title="Copy Message">
+                                           <CopyIcon size={16} weight="duotone" />
+                                       </button>
+                                       <button className="btn-outline" onClick={() => handleDelete(inq.id, inq.name)} style={{ padding: '6px', color: '#ef4444', borderColor: '#ef4444' }} title="Delete">
+                                           <TrashIcon size={16} weight="duotone" />
+                                       </button>
+                                   </div>
+                               </td>
+                           </tr>
+                       ))}
+                       {filteredInquiries.length === 0 && <tr><td colSpan={5} style={{...tdStyle, textAlign:'center', color:'#94a3b8', padding:'3rem'}}>No inquiries found.</td></tr>}
+                   </tbody>
                  </table>
                </div>
             </div>

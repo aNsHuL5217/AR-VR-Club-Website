@@ -5,7 +5,12 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/common/Navbar';
 import AdminSidebar from '@/components/admin/AdminSidebar';
-import { X, Edit, Trash2, Calendar, Plus } from 'lucide-react';
+import { 
+  XIcon, 
+  PencilSimpleIcon, 
+  TrashIcon, 
+  PlusIcon 
+} from '@phosphor-icons/react/dist/ssr';
 
 interface Event {
   ID: string; Title: string; Description: string; StartTime: string; EndTime: string;
@@ -115,7 +120,7 @@ export default function EventManagementPage() {
                 <h2 style={{ margin: 0, fontSize: '2rem', fontWeight: 'bold', color: 'white' }}>Event Management</h2>
                 <p style={{ margin: '0.5rem 0 0 0', color: '#94a3b8' }}>Create, edit, and manage club events</p>
               </div>
-              <button className="btn" onClick={handleCreate}><Plus size={18} style={{marginRight:'8px'}}/> Create New Event</button>
+              <button className="btn" onClick={handleCreate}><PlusIcon size={18}  style={{marginRight:'8px'}}/> Create New Event</button>
             </div>
 
             {error && <div style={{ padding: '10px', background: 'rgba(239, 68, 68, 0.2)', color: '#f87171', borderRadius: '8px', marginBottom: '1rem' }}>{error}</div>}
@@ -150,10 +155,10 @@ export default function EventManagementPage() {
                           <td style={tdStyle}>
                             <div style={{ display: 'flex', gap: '0.5rem' }}>
                               <button className="btn-outline" onClick={() => handleEdit(event)} style={{ padding: '6px 10px' }} title="Edit">
-                                <Edit size={16} />
+                                <PencilSimpleIcon size={16} weight="duotone" />
                               </button>
                               <button className="btn-outline" onClick={() => handleDelete(event.ID)} style={{ padding: '6px 10px', color: '#ef4444', borderColor: '#ef4444' }} title="Delete">
-                                <Trash2 size={16} />
+                                <TrashIcon size={16} weight="duotone" />
                               </button>
                             </div>
                           </td>
@@ -177,7 +182,9 @@ export default function EventManagementPage() {
              display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100,
          }} onClick={() => !submitting && setShowModal(false)}>
            <div className="glass-card" style={{ maxWidth: '600px', width: '90%', maxHeight: '90vh', overflowY: 'auto', position: 'relative' }} onClick={(e) => e.stopPropagation()}>
-             <button onClick={() => setShowModal(false)} style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><X size={20}/></button>
+             <button onClick={() => setShowModal(false)} style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
+                <XIcon size={20} weight="duotone" />
+             </button>
              
              <h3 style={{ marginTop: 0, marginBottom: '1.5rem', color: 'white' }}>{editingEvent ? 'Edit Event' : 'Create New Event'}</h3>
              

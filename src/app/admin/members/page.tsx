@@ -5,7 +5,14 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/common/Navbar';
 import AdminSidebar from '@/components/admin/AdminSidebar';
-import { X, Search, FileText, Download, UserPlus, RefreshCw } from 'lucide-react';
+import { 
+  XIcon,
+  FileTextIcon, 
+  UserPlusIcon, 
+  ArrowsClockwiseIcon,
+  PencilSimpleIcon, 
+  TrashIcon, 
+} from '@phosphor-icons/react/dist/ssr';
 
 const formatDate = (dateString: string) => {
   if (!dateString) return '-';
@@ -65,17 +72,17 @@ export default function MemberManagementPage() {
 
   const fetchMembers = async () => {
      try {
-        setLoading(true);
-        const res = await fetch('/api/admin/users', { 
-            cache: 'no-store',
-            headers: { 'Cache-Control': 'no-cache' } 
-        });
-        const data = await res.json();
-        if(data.success) {
-            setMembers(data.data);
-        } else {
-            console.error("Failed to load members:", data.error);
-        }
+       setLoading(true);
+       const res = await fetch('/api/admin/users', { 
+           cache: 'no-store',
+           headers: { 'Cache-Control': 'no-cache' } 
+       });
+       const data = await res.json();
+       if(data.success) {
+           setMembers(data.data);
+       } else {
+           console.error("Failed to load members:", data.error);
+       }
      } catch(e) { 
          console.error(e);
      } finally { 
@@ -111,13 +118,13 @@ export default function MemberManagementPage() {
   const handleEdit = (m: Member) => {
      setEditingMember(m);
      setFormData({
-        Name: m.Name,
-        Email: m.Email,
-        Role: m.Role,
-        Year: m.Year || '',
-        Dept: m.Dept || '',
-        Designation: m.Designation || '',
-        MobileNumber: m.MobileNumber || ''
+       Name: m.Name,
+       Email: m.Email,
+       Role: m.Role,
+       Year: m.Year || '',
+       Dept: m.Dept || '',
+       Designation: m.Designation || '',
+       MobileNumber: m.MobileNumber || ''
      });
      setShowModal(true);
   }
@@ -177,13 +184,13 @@ export default function MemberManagementPage() {
                <div>
                  <h2 style={{ margin: 0, fontSize: '2rem', fontWeight: 'bold', color: 'white' }}>Members</h2>
                  <p style={{ margin: '0.5rem 0 0 0', color: '#94a3b8' }}>
-                    Manage club membership database
+                   Manage club membership database
                  </p>
                </div>
                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                 <button className="btn-outline" onClick={fetchMembers} title="Refresh"><RefreshCw size={18}/></button>
-                 <button className="btn" onClick={handleCreate}><UserPlus size={18} style={{marginRight: '8px'}}/> Add Member</button>
-                 <button className="btn-outline" onClick={() => window.open('/api/export?type=users&format=excel')} title="Export Excel"><FileText size={18}/></button>
+                 <button className="btn-outline" onClick={fetchMembers} title="Refresh"><ArrowsClockwiseIcon size={18} /></button>
+                 <button className="btn" onClick={handleCreate}><UserPlusIcon size={18} weight="duotone" style={{marginRight: '8px'}}/> Add Member</button>
+                 <button className="btn-outline" onClick={() => window.open('/api/export?type=users&format=excel')} title="Export Excel"><FileTextIcon size={18} weight="duotone"/></button>
                </div>
              </div>
 
@@ -253,8 +260,8 @@ export default function MemberManagementPage() {
                                    <td style={tdStyle}>{m.MobileNumber || '-'}</td>
                                    <td style={tdStyle}>{formatDate(m.CreatedAt)}</td>
                                    <td style={tdStyle}>
-                                       <button className="btn-outline" onClick={() => handleEdit(m)} style={{ padding: '4px 10px', marginRight: '5px' }}>Edit</button>
-                                       <button className="btn-outline" onClick={() => handleDelete(m.UserID)} style={{ padding: '4px 10px', color: '#ef4444', borderColor: '#ef4444' }}>Del</button>
+                                       <button className="btn-outline" onClick={() => handleEdit(m)} style={{ padding: '4px 10px', marginRight: '5px' }}><PencilSimpleIcon size={18} weight="duotone"/></button>
+                                       <button className="btn-outline" onClick={() => handleDelete(m.UserID)} style={{ padding: '4px 10px', color: '#ef4444', borderColor: '#ef4444' }}><TrashIcon size={18} weight="duotone"/></button>
                                    </td>
                                </tr>
                            ))
@@ -279,7 +286,7 @@ export default function MemberManagementPage() {
              <div className="glass-card" style={{ maxWidth: '600px', width: '90%', maxHeight:'90vh', overflowY:'auto', padding: '2rem' }} onClick={e => e.stopPropagation()}>
                  <div style={{display:'flex', justifyContent:'space-between', marginBottom:'1.5rem'}}>
                     <h3 style={{color:'white', margin:0}}>{editingMember ? 'Edit' : 'Add'} Member</h3>
-                    <button onClick={() => setShowModal(false)} style={{background:'none', border:'none', color:'white', cursor:'pointer'}}><X/></button>
+                    <button onClick={() => setShowModal(false)} style={{background:'none', border:'none', color:'white', cursor:'pointer'}}><XIcon size={20} weight="duotone" /></button>
                  </div>
                  
                  <form onSubmit={handleSubmit}>

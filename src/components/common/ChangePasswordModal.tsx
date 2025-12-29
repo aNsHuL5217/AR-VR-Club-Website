@@ -2,7 +2,12 @@
 
 import React, { useState } from 'react';
 import { changePassword } from '@/lib/firebase/auth';
-import { X, CheckCircle, AlertCircle } from 'lucide-react';
+import { 
+  XCircleIcon, 
+  CheckCircleIcon, 
+  WarningCircleIcon, 
+  LockKeyIcon 
+} from '@phosphor-icons/react/dist/ssr';
 
 interface ChangePasswordModalProps {
   isOpen: boolean;
@@ -71,16 +76,16 @@ export default function ChangePasswordModal({ isOpen, onClose }: ChangePasswordM
           onClick={onClose} 
           style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
         >
-          <X size={20} />
+          <XCircleIcon size={20} weight="duotone" />
         </button>
 
         <h3 style={{ marginTop: 0, marginBottom: '1.5rem', color: 'white', fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          🔒 Change Password
+          <LockKeyIcon size={24} weight="duotone" /> Change Password
         </h3>
 
         {success ? (
           <div style={{ textAlign: 'center', padding: '2rem' }}>
-            <CheckCircle size={48} color="#4ade80" style={{ margin: '0 auto 1rem' }} />
+            <CheckCircleIcon size={48} color="#4ade80" weight="duotone" style={{ margin: '0 auto 1rem' }} />
             <p style={{ color: '#4ade80', fontSize: '1.1rem', fontWeight: 'bold' }}>
               Password changed successfully!
             </p>
@@ -128,7 +133,7 @@ export default function ChangePasswordModal({ isOpen, onClose }: ChangePasswordM
 
             {error && (
               <div style={{ padding: '10px', marginBottom: '1rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#f87171', borderRadius: '8px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <AlertCircle size={16} /> {error}
+                <WarningCircleIcon size={16} weight="duotone" /> {error}
               </div>
             )}
 

@@ -5,7 +5,12 @@ import { useRouter } from 'next/navigation';
 import { signIn, signUp, signInWithGoogle, signOutUser, resetPassword } from '@/lib/firebase/auth';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/common/Navbar';
-import { X, Mail, CheckCircle, AlertCircle } from 'lucide-react';
+import { 
+  XIcon, 
+  EnvelopeSimpleIcon, 
+  CheckCircleIcon, 
+  WarningCircleIcon,
+} from '@phosphor-icons/react/dist/ssr';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -123,7 +128,7 @@ export default function LoginPage() {
             {isLogin ? 'Welcome Back' : 'Join the Club'}
           </h2>
 
-          {error && <div style={{ padding: '10px', background: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#f87171', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.9rem', display: 'flex', gap: '8px', alignItems: 'center' }}><AlertCircle size={18}/> {error}</div>}
+          {error && <div style={{ padding: '10px', background: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#f87171', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.9rem', display: 'flex', gap: '8px', alignItems: 'center' }}><WarningCircleIcon size={18} weight="duotone" /> {error}</div>}
 
           <form onSubmit={handleSubmit}>
             {isLogin && (
@@ -216,18 +221,20 @@ export default function LoginPage() {
             display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100,
         }} onClick={() => !forgotLoading && setShowForgotPassword(false)}>
             <div className="glass-card" style={{ maxWidth: '450px', width: '90%', position: 'relative' }} onClick={(e) => e.stopPropagation()}>
-                <button onClick={() => setShowForgotPassword(false)} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><X size={20}/></button>
+                <button onClick={() => setShowForgotPassword(false)} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
+                    <XIcon size={20}  />
+                </button>
                 
                 {forgotSuccess ? (
                     <div style={{ textAlign: 'center', padding: '1rem' }}>
-                        <CheckCircle size={48} color="#4ade80" style={{ margin: '0 auto 1rem' }} />
+                        <CheckCircleIcon size={48} color="#4ade80" weight="duotone" style={{ margin: '0 auto 1rem' }} />
                         <h3 style={{ color: 'white', marginBottom: '0.5rem' }}>Check your inbox</h3>
                         <p style={{ color: '#94a3b8' }}>We sent a reset link to <strong>{forgotPasswordEmail}</strong></p>
                     </div>
                 ) : (
                     <>
                         <h3 style={{ color: 'white', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                           <Mail size={24} /> Reset Password
+                           <EnvelopeSimpleIcon size={24} weight="duotone" /> Reset Password
                         </h3>
                         <p style={{ color: '#94a3b8', marginBottom: '1.5rem', fontSize: '0.9rem' }}>Enter your email to receive a reset link.</p>
                         <form onSubmit={handleForgotPassword}>

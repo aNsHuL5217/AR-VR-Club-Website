@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter } from 'next/navigation';
-import { Menu, X } from 'lucide-react';
+import { ListIcon, XCircleIcon } from '@phosphor-icons/react/dist/ssr';
 
 export default function Navbar() {
   const { user, authUser, loading } = useAuth();
@@ -44,7 +44,7 @@ export default function Navbar() {
           onClick={() => setShowMenu(!showMenu)}
           aria-label="Toggle Menu"
         >
-          {showMenu ? <X size={24} color="white" /> : <Menu size={24} color="white" />}
+          {showMenu ? <XCircleIcon size={24} color="white" weight="duotone" /> : <ListIcon size={24} color="white" />}
         </button>
 
         <ul className={`nav-links ${showMenu ? 'active' : ''}`}>

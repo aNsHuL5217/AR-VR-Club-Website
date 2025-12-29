@@ -5,7 +5,15 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/common/Navbar';
 import ChangePasswordModal from '@/components/common/ChangePasswordModal';
-import { X, Calendar, MapPin, Clock } from 'lucide-react';
+import { 
+  XCircleIcon, 
+  LockKeyIcon, 
+  CalendarCheckIcon, 
+  ClipboardTextIcon, 
+  TrophyIcon, 
+  CheckCircleIcon, 
+  WarningCircleIcon 
+} from '@phosphor-icons/react/dist/ssr';
 
 interface Event {
     ID: string;
@@ -142,8 +150,8 @@ export default function DashboardPage() {
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
           <h2 style={{ color: 'white', fontSize: '2rem' }}>Student Dashboard</h2>
-          <button className="btn-outline" onClick={() => setShowPasswordModal(true)}>
-            🔒 Change Password
+          <button className="btn-outline" onClick={() => setShowPasswordModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <LockKeyIcon size={18} weight="duotone" /> Change Password
           </button>
         </div>
 
@@ -157,9 +165,18 @@ export default function DashboardPage() {
           <div>
             <h3 style={{ marginTop: 0, color: 'white', marginBottom: '0.5rem' }}>Welcome, {authUser?.displayName || user.email}!</h3>
             <div style={{ display: 'flex', gap: '2rem', color: '#94a3b8', flexWrap: 'wrap', fontSize: '0.95rem' }}>
-                <span>📅 Attended: <strong style={{ color: '#60a5fa' }}>{eventsAttended}</strong></span>
-                <span>📝 Registered: <strong style={{ color: '#60a5fa' }}>{registrations.length}</strong></span>
-                <span>🏆 Certificates: <strong style={{ color: '#60a5fa' }}>0</strong></span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <CalendarCheckIcon size={20} color="#60a5fa" weight="duotone" /> 
+                    Attended: <strong style={{ color: 'white' }}>{eventsAttended}</strong>
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <ClipboardTextIcon size={20} color="#60a5fa" weight="duotone" /> 
+                    Registered: <strong style={{ color: 'white' }}>{registrations.length}</strong>
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <TrophyIcon size={20} color="#60a5fa" weight="duotone" /> 
+                    Certificates: <strong style={{ color: 'white' }}>0</strong>
+                </span>
             </div>
           </div>
         </div>
@@ -196,10 +213,17 @@ export default function DashboardPage() {
                                 <span className={`status-badge ${isFull ? 'status-closed' : 'status-active'}`}>{event.Status}</span>
                             </td>
                             <td style={tdStyle}>
-                            {isRegistered ? <span style={{ color: '#4ade80', fontSize: '0.9rem' }}>✓ Registered</span> : 
-                            isFull ? <span style={{ color: '#f87171', fontSize: '0.9rem' }}>Full</span> : 
-                            <button className="btn" onClick={() => handleRegisterClick(event.ID)} style={{ padding: '6px 16px', fontSize: '0.85rem' }}>Register</button>
-                            }
+                            {isRegistered ? (
+                                <span style={{ color: '#4ade80', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <CheckCircleIcon size={18} weight="fill" /> Registered
+                                </span>
+                            ) : isFull ? (
+                                <span style={{ color: '#f87171', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <WarningCircleIcon size={18} weight="duotone" /> Full
+                                </span>
+                            ) : (
+                                <button className="btn" onClick={() => handleRegisterClick(event.ID)} style={{ padding: '6px 16px', fontSize: '0.85rem' }}>Register</button>
+                            )}
                             </td>
                         </tr>
                         );
@@ -258,7 +282,7 @@ export default function DashboardPage() {
         }} onClick={() => !registering && setShowRegistrationModal(false)}>
           <div className="glass-card" style={{ maxWidth: '500px', width: '90%', position: 'relative' }} onClick={(e) => e.stopPropagation()}>
             <button onClick={() => setShowRegistrationModal(false)} style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
-                <X size={20} />
+                <XCircleIcon size={30} weight="duotone" />
             </button>
             <h3 style={{ marginTop: 0, marginBottom: '1.5rem', color: 'white', fontSize: '1.5rem' }}>Register for Event</h3>
             

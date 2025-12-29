@@ -6,7 +6,13 @@ import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/common/Navbar';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import ChangePasswordModal from '@/components/common/ChangePasswordModal';
-import { User, Shield, Mail, Hash } from 'lucide-react';
+import { 
+  UserIcon, 
+  ShieldIcon, 
+  EnvelopeSimpleIcon, 
+  HashIcon, 
+  LockKeyIcon 
+} from '@phosphor-icons/react/dist/ssr';
 
 export default function AdminDashboard() {
   const { authUser, loading } = useAuth();
@@ -37,8 +43,8 @@ export default function AdminDashboard() {
                 <h2 style={{ margin: 0, fontSize: '2rem', fontWeight: 'bold', color: 'white' }}>Profile Settings</h2>
                 <p style={{ margin: '0.5rem 0 0 0', color: '#94a3b8' }}>Manage your admin account details</p>
               </div>
-              <button className="btn-outline" onClick={() => setShowPasswordModal(true)}>
-                🔒 Change Password
+              <button className="btn-outline" onClick={() => setShowPasswordModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <LockKeyIcon size={18} weight="duotone" /> Change Password
               </button>
             </div>
 
@@ -51,7 +57,9 @@ export default function AdminDashboard() {
               <div style={{ display: 'grid', gap: '2rem', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
                 
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                  <div style={{ padding: '10px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '8px', color: '#60a5fa' }}><User size={24} /></div>
+                  <div style={{ padding: '10px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '8px', color: '#60a5fa' }}>
+                    <UserIcon size={24} weight="duotone" />
+                  </div>
                   <div>
                     <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 'bold', color: '#94a3b8', fontSize: '0.85rem' }}>Full Name</label>
                     <p style={{ margin: 0, fontSize: '1.1rem', fontWeight: '500', color: 'white' }}>{authUser.displayName || 'Not set'}</p>
@@ -59,7 +67,9 @@ export default function AdminDashboard() {
                 </div>
 
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                  <div style={{ padding: '10px', background: 'rgba(168, 85, 247, 0.1)', borderRadius: '8px', color: '#c084fc' }}><Mail size={24} /></div>
+                  <div style={{ padding: '10px', background: 'rgba(168, 85, 247, 0.1)', borderRadius: '8px', color: '#c084fc' }}>
+                    <EnvelopeSimpleIcon size={24} weight="duotone" />
+                  </div>
                   <div>
                     <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 'bold', color: '#94a3b8', fontSize: '0.85rem' }}>Email Address</label>
                     <p style={{ margin: 0, fontSize: '1.1rem', fontWeight: '500', color: 'white' }}>{authUser.email || 'Not set'}</p>
@@ -67,7 +77,9 @@ export default function AdminDashboard() {
                 </div>
 
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                  <div style={{ padding: '10px', background: 'rgba(234, 179, 8, 0.1)', borderRadius: '8px', color: '#facc15' }}><Shield size={24} /></div>
+                  <div style={{ padding: '10px', background: 'rgba(234, 179, 8, 0.1)', borderRadius: '8px', color: '#facc15' }}>
+                    <ShieldIcon size={24} weight="duotone" />
+                  </div>
                   <div>
                     <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 'bold', color: '#94a3b8', fontSize: '0.85rem' }}>Role</label>
                     <span className="status-badge status-warning" style={{ fontSize: '0.9rem', padding: '0.25rem 0.75rem' }}>Admin</span>
@@ -75,7 +87,9 @@ export default function AdminDashboard() {
                 </div>
 
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                   <div style={{ padding: '10px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px', color: '#cbd5e1' }}><Hash size={24} /></div>
+                   <div style={{ padding: '10px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px', color: '#cbd5e1' }}>
+                    <HashIcon size={24} weight="duotone" />
+                   </div>
                    <div>
                     <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 'bold', color: '#94a3b8', fontSize: '0.85rem' }}>User ID</label>
                     <p style={{ margin: 0, fontSize: '0.9rem', color: '#cbd5e1', fontFamily: 'monospace' }}>{authUser.uid}</p>
