@@ -5,10 +5,10 @@ import { useRouter } from 'next/navigation';
 import { signIn, signUp, signInWithGoogle, signOutUser, resetPassword } from '@/lib/firebase/auth';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/common/Navbar';
-import { 
-  XIcon, 
-  EnvelopeSimpleIcon, 
-  CheckCircleIcon, 
+import {
+  XIcon,
+  EnvelopeSimpleIcon,
+  CheckCircleIcon,
   WarningCircleIcon,
 } from '@phosphor-icons/react/dist/ssr';
 
@@ -22,9 +22,11 @@ export default function LoginPage() {
   const [name, setName] = useState('');
   const [year, setYear] = useState('');
   const [dept, setDept] = useState('');
+  const [rollNo, setRollNo] = useState('');
+  const [mobileNumber, setMobileNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
+
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
@@ -49,15 +51,15 @@ export default function LoginPage() {
 
         try {
           const response = await fetch(`/api/users?userId=${userId}`);
-          
+
           if (!response.ok) {
             throw new Error('Failed to fetch user profile');
           }
 
           const data = await response.json();
-          
+
           if (!data.success || !data.data) {
-             throw new Error('User profile not found.');
+            throw new Error('User profile not found.');
           }
 
           const userRole = data.data.Role?.toLowerCase() || 'student'; // Default to student if undefined
@@ -76,16 +78,16 @@ export default function LoginPage() {
 
         } catch (fetchError: any) {
           await signOutUser();
-          throw fetchError; 
+          throw fetchError;
         }
 
       } else {
-        if (!name || !year || !dept) throw new Error("Please fill all fields");
-        
-        await signUp(email, password, name, year, dept, '');
-        
+        if (!name || !year || !dept || !rollNo || !mobileNumber) throw new Error("Please fill all fields");
+
+        await signUp(email, password, name, year, dept, rollNo, mobileNumber);
+
         await new Promise(resolve => setTimeout(resolve, 1000));
-        
+
         router.push('/dashboard');
       }
     } catch (err: any) {
@@ -102,21 +104,21 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
-        await signInWithGoogle();
+      await signInWithGoogle();
     } catch (err: any) {
-        setError(err.message);
-        setLoading(false);
+      setError(err.message);
+      setLoading(false);
     }
   };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
-      e.preventDefault();
-      setForgotLoading(true);
-      try {
-          await resetPassword(forgotPasswordEmail);
-          setForgotSuccess(true);
-      } catch (e: any) { setError(e.message); }
-      finally { setForgotLoading(false); }
+    e.preventDefault();
+    setForgotLoading(true);
+    try {
+      await resetPassword(forgotPasswordEmail);
+      setForgotSuccess(true);
+    } catch (e: any) { setError(e.message); }
+    finally { setForgotLoading(false); }
   }
 
   return (
@@ -136,21 +138,27 @@ export default function LoginPage() {
                 <label style={{ display: 'block', marginBottom: '0.8rem', color: '#cbd5e1', fontSize: '0.9rem' }}>I am a:</label>
                 <div style={{ display: 'flex', gap: '1rem' }}>
                   {['student', 'admin'].map((role) => (
-                      <button
-                        key={role}
-                        type="button"
-                        onClick={() => setLoginRole(role as any)}
-                        style={{
-                            flex: 1, padding: '10px', borderRadius: '8px',
-                            border: `1px solid ${loginRole === role ? '#3b82f6' : 'rgba(255,255,255,0.1)'}`,
-                            background: loginRole === role ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.03)',
-                            color: loginRole === role ? '#60a5fa' : '#94a3b8',
-                            cursor: 'pointer', textTransform: 'capitalize', fontWeight: loginRole === role ? '600' : '400',
-                            transition: 'all 0.2s ease'
-                        }}
-                      >
-                        {role}
-                      </button>
+                    <button
+                      key={role}
+                      type="button"
+                      onClick={() => {
+                        setLoginRole(role as any);
+                        if (role === 'admin') {
+                          setIsLogin(true);
+                          setError('');
+                        }
+                      }}
+                      style={{
+                        flex: 1, padding: '10px', borderRadius: '8px',
+                        border: `1px solid ${loginRole === role ? '#3b82f6' : 'rgba(255,255,255,0.1)'}`,
+                        background: loginRole === role ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.03)',
+                        color: loginRole === role ? '#60a5fa' : '#94a3b8',
+                        cursor: 'pointer', textTransform: 'capitalize', fontWeight: loginRole === role ? '600' : '400',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      {role}
+                    </button>
                   ))}
                 </div>
               </div>
@@ -160,21 +168,24 @@ export default function LoginPage() {
               <>
                 <input type="text" className="form-input" placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} required />
                 <div style={{ display: 'flex', gap: '10px' }}>
-                    <select className="form-input" value={year} onChange={(e) => setYear(e.target.value)} required>
-                        <option value="" style={{ color: 'black' }}>Year</option>
-                        <option value="First Year" style={{ color: 'black' }}>1st</option>
-                        <option value="Second Year" style={{ color: 'black' }}>2nd</option>
-                        <option value="Third Year" style={{ color: 'black' }}>3rd</option>
-                        <option value="Fourth Year" style={{ color: 'black' }}>4th</option>
-                    </select>
-                    <select className="form-input" value={dept} onChange={(e) => setDept(e.target.value)} required>
-                        <option value="" style={{ color: 'black' }}>Dept</option>
-                        <option value="CSE" style={{ color: 'black' }}>CSE</option>
-                        <option value="IT" style={{ color: 'black' }}>IT</option>
-                        <option value="ECE" style={{ color: 'black' }}>ECE</option>
-                        <option value="AIML" style={{ color: 'black' }}>AIML</option>
-                    </select>
+                  <select className="form-input" value={year} onChange={(e) => setYear(e.target.value)} required>
+                    <option value="" style={{ color: 'black' }}>Year</option>
+                    <option value="First Year" style={{ color: 'black' }}>1st</option>
+                    <option value="Second Year" style={{ color: 'black' }}>2nd</option>
+                    <option value="Third Year" style={{ color: 'black' }}>3rd</option>
+                    <option value="Fourth Year" style={{ color: 'black' }}>4th</option>
+                  </select>
+                  <select className="form-input" value={dept} onChange={(e) => setDept(e.target.value)} required>
+                    <option value="" style={{ color: 'black' }}>Dept</option>
+                    <option value="CSE" style={{ color: 'black' }}>CSE</option>
+                    <option value="IT" style={{ color: 'black' }}>IT</option>
+                    <option value="ECE" style={{ color: 'black' }}>ECE</option>
+                    <option value="AIML" style={{ color: 'black' }}>AIML</option>
+                    <option value="AIDS" style={{ color: 'black' }}>AIDS</option>
+                  </select>
                 </div>
+                <input type="text" className="form-input" placeholder="Roll Number (e.g. TY-CSE-01)" value={rollNo} onChange={(e) => setRollNo(e.target.value)} required />
+                <input type="tel" className="form-input" placeholder="Mobile Number (+91...)" value={mobileNumber} onChange={(e) => setMobileNumber(e.target.value)} required />
               </>
             )}
 
@@ -192,7 +203,7 @@ export default function LoginPage() {
             <button type="submit" className="btn" style={{ width: '100%', marginBottom: '1rem' }} disabled={loading}>
               {loading ? 'Processing...' : isLogin ? 'Sign In' : 'Sign Up'}
             </button>
-          </form>
+          </form >
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', margin: '1.5rem 0' }}>
             <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }}></div>
@@ -204,51 +215,55 @@ export default function LoginPage() {
             Sign in with Google
           </button>
 
-          <p style={{ textAlign: 'center', marginTop: '2rem', color: '#94a3b8', fontSize: '0.9rem' }}>
-            {isLogin ? "New here? " : "Already a member? "}
-            <button onClick={() => { setIsLogin(!isLogin); setError(''); }} style={{ background: 'none', border: 'none', color: '#60a5fa', cursor: 'pointer', fontWeight: 'bold' }}>
-              {isLogin ? 'Create Account' : 'Sign In'}
-            </button>
-          </p>
-        </div>
-      </div>
+          {loginRole !== 'admin' && (
+            <p style={{ textAlign: 'center', marginTop: '2rem', color: '#94a3b8', fontSize: '0.9rem' }}>
+              {isLogin ? "New here? " : "Already a member? "}
+              <button onClick={() => { setIsLogin(!isLogin); setError(''); }} style={{ background: 'none', border: 'none', color: '#60a5fa', cursor: 'pointer', fontWeight: 'bold' }}>
+                {isLogin ? 'Create Account' : 'Sign In'}
+              </button>
+            </p>
+          )}
+        </div >
+      </div >
 
       {/* Forgot Password Modal */}
-      {showForgotPassword && (
-        <div style={{
+      {
+        showForgotPassword && (
+          <div style={{
             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
             backgroundColor: 'rgba(0, 0, 0, 0.8)', backdropFilter: 'blur(8px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100,
-        }} onClick={() => !forgotLoading && setShowForgotPassword(false)}>
+          }} onClick={() => !forgotLoading && setShowForgotPassword(false)}>
             <div className="glass-card" style={{ maxWidth: '450px', width: '90%', position: 'relative' }} onClick={(e) => e.stopPropagation()}>
-                <button onClick={() => setShowForgotPassword(false)} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
-                    <XIcon size={20}  />
-                </button>
-                
-                {forgotSuccess ? (
-                    <div style={{ textAlign: 'center', padding: '1rem' }}>
-                        <CheckCircleIcon size={48} color="#4ade80" weight="duotone" style={{ margin: '0 auto 1rem' }} />
-                        <h3 style={{ color: 'white', marginBottom: '0.5rem' }}>Check your inbox</h3>
-                        <p style={{ color: '#94a3b8' }}>We sent a reset link to <strong>{forgotPasswordEmail}</strong></p>
+              <button onClick={() => setShowForgotPassword(false)} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
+                <XIcon size={20} />
+              </button>
+
+              {forgotSuccess ? (
+                <div style={{ textAlign: 'center', padding: '1rem' }}>
+                  <CheckCircleIcon size={48} color="#4ade80" weight="duotone" style={{ margin: '0 auto 1rem' }} />
+                  <h3 style={{ color: 'white', marginBottom: '0.5rem' }}>Check your inbox</h3>
+                  <p style={{ color: '#94a3b8' }}>We sent a reset link to <strong>{forgotPasswordEmail}</strong></p>
+                </div>
+              ) : (
+                <>
+                  <h3 style={{ color: 'white', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <EnvelopeSimpleIcon size={24} weight="duotone" /> Reset Password
+                  </h3>
+                  <p style={{ color: '#94a3b8', marginBottom: '1.5rem', fontSize: '0.9rem' }}>Enter your email to receive a reset link.</p>
+                  <form onSubmit={handleForgotPassword}>
+                    <input type="email" className="form-input" placeholder="Enter your email" value={forgotPasswordEmail} onChange={(e) => setForgotPasswordEmail(e.target.value)} required />
+                    <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
+                      <button type="button" className="btn-outline" onClick={() => setShowForgotPassword(false)}>Cancel</button>
+                      <button type="submit" className="btn" disabled={forgotLoading}>{forgotLoading ? 'Sending...' : 'Send Link'}</button>
                     </div>
-                ) : (
-                    <>
-                        <h3 style={{ color: 'white', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                           <EnvelopeSimpleIcon size={24} weight="duotone" /> Reset Password
-                        </h3>
-                        <p style={{ color: '#94a3b8', marginBottom: '1.5rem', fontSize: '0.9rem' }}>Enter your email to receive a reset link.</p>
-                        <form onSubmit={handleForgotPassword}>
-                            <input type="email" className="form-input" placeholder="Enter your email" value={forgotPasswordEmail} onChange={(e) => setForgotPasswordEmail(e.target.value)} required />
-                            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
-                                <button type="button" className="btn-outline" onClick={() => setShowForgotPassword(false)}>Cancel</button>
-                                <button type="submit" className="btn" disabled={forgotLoading}>{forgotLoading ? 'Sending...' : 'Send Link'}</button>
-                            </div>
-                        </form>
-                    </>
-                )}
+                  </form>
+                </>
+              )}
             </div>
-        </div>
-      )}
+          </div>
+        )
+      }
     </>
   );
 }

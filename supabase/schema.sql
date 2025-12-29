@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS users (
   role TEXT NOT NULL DEFAULT 'student' CHECK (role IN ('student', 'admin')),
   year TEXT,
   dept TEXT,
+  roll_no TEXT,
   designation TEXT,
   mobile_number TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

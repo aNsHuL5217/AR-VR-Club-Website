@@ -23,6 +23,7 @@ export interface User {
   role: 'student' | 'admin';
   year?: string;
   dept?: string;
+  roll_no?: string;
   designation?: string; // e.g., "President", "Secretary", "Treasurer", etc.
   mobile_number?: string;
   created_at: string;

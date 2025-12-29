@@ -54,7 +54,7 @@ class SupabaseService {
    */
   async createEvent(eventData: Omit<Event, 'id' | 'created_at' | 'current_count'>): Promise<Event> {
     try {
-      const newEvent: Omit<Event, 'id' | 'created_at'> = {
+      const newEvent: any = {
         ...eventData,
         id: uuidv4(),
         current_count: 0,
@@ -217,15 +217,16 @@ class SupabaseService {
    */
   async createUser(userData: Omit<User, 'created_at'>): Promise<User> {
     try {
-      const newUser: Omit<User, 'created_at'> = {
+      const newUser: any = {
         ...userData,
         created_at: formatISO(new Date()),
       };
 
       console.log('Creating user in Supabase:', {
-        user_id: newUser.user_id,
         email: newUser.email,
         name: newUser.name,
+        roll_no: newUser.roll_no,
+        mobile_number: newUser.mobile_number,
       });
 
       const { data, error } = await supabaseAdmin
@@ -477,7 +478,7 @@ class SupabaseService {
       }
 
       // Create registration
-      const newRegistration: Omit<Registration, 'registration_id' | 'timestamp'> = {
+      const newRegistration: any = {
         registration_id: uuidv4(),
         event_id: eventId,
         user_id: userId,
@@ -569,7 +570,7 @@ class SupabaseService {
    */
   async createWinner(winnerData: Omit<Winner, 'id' | 'created_at'>): Promise<Winner> {
     try {
-      const newWinner: Omit<Winner, 'id' | 'created_at'> = {
+      const newWinner: any = {
         ...winnerData,
         id: uuidv4(),
         created_at: formatISO(new Date()),

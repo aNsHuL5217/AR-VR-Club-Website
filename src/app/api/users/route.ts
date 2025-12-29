@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     }
 
     const service = getSupabaseService();
-    
+
     try {
       // Check if user already exists
       const existingUser = await service.getUserById(UserID);
@@ -113,6 +113,7 @@ export async function GET(request: NextRequest) {
       Dept: user.dept,
       Designation: user.designation,
       MobileNumber: user.mobile_number,
+      RollNo: user.roll_no,
       CreatedAt: user.created_at,
     };
 
@@ -132,3 +133,44 @@ export async function GET(request: NextRequest) {
   }
 }
 
+
+// PUT /api/users - Update user profile
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { UserID, Name, Year, Dept, RollNo, MobileNumber } = body;
+
+    if (!UserID) {
+      return NextResponse.json(
+        { success: false, error: 'User ID is required' },
+        { status: 400 }
+      );
+    }
+
+    const service = getSupabaseService();
+
+    // Map frontend CamelCase to backend snake_case
+    const updates: any = {};
+    if (Name) updates.name = Name;
+    if (Year) updates.year = Year;
+    if (Dept) updates.dept = Dept;
+    if (RollNo) updates.roll_no = RollNo;
+    if (MobileNumber) updates.mobile_number = MobileNumber;
+
+    const updatedUser = await service.updateUser(UserID, updates);
+
+    return NextResponse.json({
+      success: true,
+      data: updatedUser,
+    });
+  } catch (error: any) {
+    console.error('Error updating user:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: error.message || 'Failed to update user',
+      },
+      { status: 500 }
+    );
+  }
+}

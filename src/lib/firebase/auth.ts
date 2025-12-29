@@ -33,12 +33,12 @@ export interface AuthUser {
 export async function signIn(email: string, password: string): Promise<User> {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    
+
     // Sync user to Supabase if they don't exist (in case signup failed earlier)
     try {
       const checkResponse = await fetch(`/api/users?userId=${userCredential.user.uid}`);
       const checkData = await checkResponse.json();
-      
+
       if (!checkData.success || !checkData.data) {
         // User doesn't exist in Supabase, create them
         console.log('User exists in Firebase but not in Supabase, syncing...');
@@ -54,7 +54,7 @@ export async function signIn(email: string, password: string): Promise<User> {
             Dept: '',
           }),
         });
-        
+
         const createData = await createResponse.json();
         if (createResponse.ok && createData.success) {
           console.log('User successfully synced to Supabase');
@@ -70,7 +70,7 @@ export async function signIn(email: string, password: string): Promise<User> {
       console.error('Error details:', error.message, error.stack);
       // Don't throw - sign in should still succeed
     }
-    
+
     return userCredential.user;
   } catch (error: any) {
     throw new Error(error.message || 'Failed to sign in');
@@ -80,13 +80,13 @@ export async function signIn(email: string, password: string): Promise<User> {
 /**
  * Sign up with email and password
  */
-export async function signUp(email: string, password: string, name: string, year: string, dept: string, mobileNumber?: string): Promise<User> {
+export async function signUp(email: string, password: string, name: string, year: string, dept: string, rollNo: string, mobileNumber: string): Promise<User> {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    
+
     // Update display name
     await updateProfile(userCredential.user, { displayName: name });
-    
+
     // Create user in database via API
     try {
       const response = await fetch('/api/users', {
@@ -99,10 +99,11 @@ export async function signUp(email: string, password: string, name: string, year
           Role: 'student',
           Year: year,
           Dept: dept,
-          MobileNumber: mobileNumber || '',
+          roll_no: rollNo,
+          mobile_number: mobileNumber,
         }),
       });
-      
+
       const data = await response.json();
       if (!response.ok || !data.success) {
         console.error('Failed to create user in database:', data.error || 'Unknown error');
@@ -112,7 +113,7 @@ export async function signUp(email: string, password: string, name: string, year
       console.error('Failed to create user in database:', error);
       // Don't throw - user is created in Firebase, database sync can happen later
     }
-    
+
     return userCredential.user;
   } catch (error: any) {
     throw new Error(error.message || 'Failed to sign up');
@@ -126,12 +127,12 @@ export async function signInWithGoogle(): Promise<User> {
   try {
     const result = await signInWithPopup(auth, googleProvider);
     const user = result.user;
-    
+
     // Sync user to Supabase if they don't exist (in case signup failed earlier)
     try {
       const checkResponse = await fetch(`/api/users?userId=${user.uid}`);
       const checkData = await checkResponse.json();
-      
+
       if (!checkResponse.ok || !checkData.success || !checkData.data) {
         // User doesn't exist in Supabase, create them
         console.log('Google user exists in Firebase but not in Supabase, syncing...');
@@ -147,7 +148,7 @@ export async function signInWithGoogle(): Promise<User> {
             Dept: '',
           }),
         });
-        
+
         const createData = await createResponse.json();
         if (createResponse.ok && createData.success) {
           console.log('Google user successfully synced to Supabase');
@@ -162,7 +163,7 @@ export async function signInWithGoogle(): Promise<User> {
       console.error('Failed to sync Google user with database:', error);
       // Don't throw - sign in should still succeed
     }
-    
+
     return user;
   } catch (error: any) {
     // Handle specific Firebase errors
@@ -197,7 +198,7 @@ export async function getCurrentUserWithRole(): Promise<AuthUser | null> {
   return new Promise((resolve) => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       unsubscribe();
-      
+
       if (!user) {
         resolve(null);
         return;
@@ -206,7 +207,7 @@ export async function getCurrentUserWithRole(): Promise<AuthUser | null> {
       try {
         const response = await fetch(`/api/users?userId=${user.uid}`);
         const data = await response.json();
-        
+
         // Handle both old and new data formats
         const role = data.data?.Role || data.data?.role || 'student';
         resolve({

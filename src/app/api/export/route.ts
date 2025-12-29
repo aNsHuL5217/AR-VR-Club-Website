@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
               .from('events')
               .select('id, title, start_time')
               .in('id', eventIds);
-            
+
             data = registrations.map(reg => {
               const event = events?.find((e: any) => e.id === reg.event_id);
               return {
@@ -115,81 +115,83 @@ export async function GET(request: NextRequest) {
       // Export to Excel using ExcelJS
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet(type);
-      
-        // Add headers
-        if (data.length > 0) {
-          // For registrations and users, use friendly column names
-          let headers: string[] = [];
-          if (type === 'registrations') {
-            headers = ['Event Name', 'User Email', 'Year', 'Department', 'Roll No.', 'Mobile Number', 'Registered On', 'Status'];
-          } else if (type === 'users') {
-            headers = ['Name', 'Email', 'Mobile Number', 'Role', 'Year', 'Department', 'Joined Date'];
-          } else {
-            headers = Object.keys(data[0]).map(key => 
-              key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-            );
-          }
-          worksheet.addRow(headers);
-          
-          // Style header row
-          const headerRow = worksheet.getRow(1);
-          headerRow.font = { bold: true };
-          headerRow.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: 'FF2563EB' }, // Blue
-          };
-          headerRow.font = { ...headerRow.font, color: { argb: 'FFFFFFFF' } }; // White text
-          headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
-          
-          // Add data rows
-          if (type === 'registrations') {
-            data.forEach((row: any) => {
-              worksheet.addRow([
-                row.event_title || row.event_id || 'Unknown Event',
-                row.user_email || '',
-                row.year || '',
-                row.dept || '',
-                row.roll_no || '',
-                row.mobile_number || '',
-                row.timestamp ? new Date(row.timestamp).toLocaleString() : '',
-                row.status || '',
-              ]);
-            });
-          } else if (type === 'users') {
-            data.forEach((row: any) => {
-              worksheet.addRow([
-                row.name || '',
-                row.email || '',
-                row.mobile_number || '',
-                row.role || '',
-                row.year || 'N/A',
-                row.dept || 'N/A',
-                row.created_at ? new Date(row.created_at).toLocaleDateString() : '',
-              ]);
-            });
-          } else {
-            data.forEach((row: any) => {
-              worksheet.addRow(Object.values(row));
-            });
-          }
-        
+
+      // Add headers
+      if (data.length > 0) {
+        // For registrations and users, use friendly column names
+        let headers: string[] = [];
+        if (type === 'registrations') {
+          headers = ['Event Name', 'User Email', 'Year', 'Department', 'Roll No.', 'Mobile Number', 'Registered On', 'Status'];
+        } else if (type === 'users') {
+          headers = ['Name', 'Email', 'Mobile Number', 'Role', 'Year', 'Department', 'Joined Date'];
+        } else {
+          headers = Object.keys(data[0]).map(key =>
+            key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+          );
+        }
+        worksheet.addRow(headers);
+
+        // Style header row
+        const headerRow = worksheet.getRow(1);
+        headerRow.font = { bold: true };
+        headerRow.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FF2563EB' }, // Blue
+        };
+        headerRow.font = { ...headerRow.font, color: { argb: 'FFFFFFFF' } }; // White text
+        headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+
+        // Add data rows
+        if (type === 'registrations') {
+          data.forEach((row: any) => {
+            worksheet.addRow([
+              row.event_title || row.event_id || 'Unknown Event',
+              row.user_email || '',
+              row.year || '',
+              row.dept || '',
+              row.roll_no || '',
+              row.mobile_number || '',
+              row.timestamp ? new Date(row.timestamp).toLocaleString() : '',
+              row.status || '',
+            ]);
+          });
+        } else if (type === 'users') {
+          data.forEach((row: any) => {
+            worksheet.addRow([
+              row.name || '',
+              row.email || '',
+              row.mobile_number || '',
+              row.role || '',
+              row.year || 'N/A',
+              row.dept || 'N/A',
+              row.created_at ? new Date(row.created_at).toLocaleDateString() : '',
+            ]);
+          });
+        } else {
+          data.forEach((row: any) => {
+            worksheet.addRow(Object.values(row));
+          });
+        }
+
         // Auto-fit columns
         worksheet.columns.forEach((column) => {
-          let maxLength = 0;
-          column.eachCell({ includeEmpty: true }, (cell) => {
-            const columnLength = cell.value ? cell.value.toString().length : 10;
-            if (columnLength > maxLength) {
-              maxLength = columnLength;
-            }
-          });
-          column.width = maxLength < 10 ? 10 : maxLength + 2;
+          if (column) {
+            let maxLength = 0;
+            (column as any).eachCell({ includeEmpty: true }, (cell: any) => {
+              const columnLength = cell.value ? cell.value.toString().length : 10;
+              if (columnLength > maxLength) {
+                maxLength = columnLength;
+              }
+            });
+            column.width = maxLength < 10 ? 10 : maxLength + 2;
+          }
         });
       }
-      
+
       // Generate buffer
       const buffer = await workbook.xlsx.writeBuffer();
-      
+
       return new NextResponse(buffer, {
         headers: {
           'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -199,18 +201,18 @@ export async function GET(request: NextRequest) {
     } else if (format === 'pdf') {
       // Export to PDF
       const doc = new jsPDF();
-      
+
       // Add title
       doc.setFontSize(16);
       doc.text(`${type.charAt(0).toUpperCase() + type.slice(1)} Report`, 14, 15);
       doc.setFontSize(10);
       doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 22);
-      
+
       // Prepare table data
       if (data.length > 0) {
         let headers: string[] = [];
         let rows: any[] = [];
-        
+
         if (type === 'registrations') {
           headers = ['Event Name', 'User Email', 'Year', 'Department', 'Roll No.', 'Mobile Number', 'Registered On', 'Status'];
           rows = data.map((row: any) => [
@@ -223,25 +225,25 @@ export async function GET(request: NextRequest) {
             row.timestamp ? new Date(row.timestamp).toLocaleString() : '',
             row.status || '',
           ]);
-          } else if (type === 'users') {
-            headers = ['Name', 'Email', 'Mobile Number', 'Designation', 'Role', 'Year', 'Department', 'Joined Date'];
-            rows = data.map((row: any) => [
-              row.name || '',
-              row.email || '',
-              row.mobile_number || '',
-              row.designation || 'N/A',
-              row.role || '',
-              row.year || 'N/A',
-              row.dept || 'N/A',
-              row.created_at ? new Date(row.created_at).toLocaleDateString() : '',
-            ]);
+        } else if (type === 'users') {
+          headers = ['Name', 'Email', 'Mobile Number', 'Designation', 'Role', 'Year', 'Department', 'Joined Date'];
+          rows = data.map((row: any) => [
+            row.name || '',
+            row.email || '',
+            row.mobile_number || '',
+            row.designation || 'N/A',
+            row.role || '',
+            row.year || 'N/A',
+            row.dept || 'N/A',
+            row.created_at ? new Date(row.created_at).toLocaleDateString() : '',
+          ]);
         } else {
-          headers = Object.keys(data[0]).map(key => 
+          headers = Object.keys(data[0]).map(key =>
             key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
           );
           rows = data.map(item => Object.values(item).map(val => String(val)));
         }
-        
+
         // Simple table implementation
         let yPos = 30;
         const cellHeight = 8;
@@ -249,7 +251,7 @@ export async function GET(request: NextRequest) {
         const pageWidth = 190;
         const cellWidth = pageWidth / maxCols;
         const startX = 10;
-        
+
         // Draw headers with background
         doc.setFillColor(37, 99, 235);
         doc.setTextColor(255, 255, 255);
@@ -259,7 +261,7 @@ export async function GET(request: NextRequest) {
           const headerText = headers[i]?.substring(0, 12) || '';
           doc.text(headerText, startX + i * cellWidth + 2, yPos + 5);
         }
-        
+
         // Draw rows
         doc.setTextColor(0, 0, 0);
         doc.setFontSize(8);
@@ -275,16 +277,16 @@ export async function GET(request: NextRequest) {
             doc.text(cellText, startX + i * cellWidth + 2, yPos + 5);
           }
         });
-        
+
         if (rows.length > 25) {
           doc.text(`... and ${rows.length - 25} more rows`, startX, yPos + 15);
         }
       } else {
         doc.text('No data available', 14, 30);
       }
-      
+
       const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
-      
+
       return new NextResponse(pdfBuffer, {
         headers: {
           'Content-Type': 'application/pdf',

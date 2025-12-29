@@ -50,12 +50,12 @@ export async function GET(request: NextRequest) {
       success: true,
       data: transformedRegistrations,
     });
-    
+
     // Prevent caching
     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     response.headers.set('Pragma', 'no-cache');
     response.headers.set('Expires', '0');
-    
+
     return response;
   } catch (error: any) {
     console.error('Error fetching registrations:', error);
@@ -82,15 +82,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!year || !dept || !rollNo || !mobileNumber) {
+    const service = getSupabaseService();
+
+    // 1. Fetch User Details from Database
+    const userProfile = await service.getUserById(userId);
+    if (!userProfile) {
       return NextResponse.json(
-        { success: false, error: 'Year, Department, Roll Number, and Mobile Number are required for registration' },
+        { success: false, error: 'User profile not found' },
+        { status: 404 }
+      );
+    }
+
+    // 2. Validate Profile Completeness
+    // We expect year, dept, roll_no, and mobile_number to be present in the user profile
+    if (!userProfile.year || !userProfile.dept || !userProfile.roll_no || !userProfile.mobile_number) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Please complete your profile (Year, Dept, Roll No, Mobile) before registering.',
+          code: 'PROFILE_INCOMPLETE'
+        },
         { status: 400 }
       );
     }
 
-    const service = getSupabaseService();
-    
     // Check if already registered
     const isRegistered = await service.isUserRegistered(eventId, userId);
     if (isRegistered) {
@@ -100,10 +115,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('Creating registration:', { eventId, userId, userEmail, year, dept, rollNo, mobileNumber });
-    
+    console.log('Creating registration for user:', userProfile.email);
+
     try {
-      const registration = await service.createRegistration(eventId, userId, userEmail, year, dept, rollNo, mobileNumber);
+      // Use profile data for registration
+      const registration = await service.createRegistration(
+        eventId,
+        userId,
+        userProfile.email,
+        userProfile.year,
+        userProfile.dept,
+        userProfile.roll_no,
+        userProfile.mobile_number
+      );
       console.log('Registration created successfully:', registration);
 
       // Transform to match expected format
@@ -124,12 +148,12 @@ export async function POST(request: NextRequest) {
         success: true,
         data: transformedRegistration,
       });
-      
+
       // Prevent caching
       response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
       response.headers.set('Pragma', 'no-cache');
       response.headers.set('Expires', '0');
-      
+
       return response;
     } catch (regError: any) {
       console.error('Registration creation error:', regError);
