@@ -5,36 +5,37 @@ import { useRouter } from 'next/navigation';
 import { signIn, signUp, signInWithGoogle, signOutUser, resetPassword } from '@/lib/firebase/auth';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/common/Navbar';
+import { 
+  XIcon, 
+  EnvelopeSimpleIcon, 
+  CheckCircleIcon, 
+  WarningCircleIcon,
+} from '@phosphor-icons/react/dist/ssr';
 
 export default function LoginPage() {
   const router = useRouter();
   const { authUser, loading: authLoading } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
-  const [loginRole, setLoginRole] = useState<'student' | 'admin'>('student'); // Role selector for login
+  const [loginRole, setLoginRole] = useState<'student' | 'admin'>('student');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [year, setYear] = useState('');
   const [dept, setDept] = useState('');
-  const [mobileNumber, setMobileNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [isVerifyingRole, setIsVerifyingRole] = useState(false); // Track if we're verifying role
+  
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
-  const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
-  const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSuccess, setForgotSuccess] = useState(false);
 
-  // Redirect if already logged in (but not during role verification)
   useEffect(() => {
-    if (!authLoading && authUser && !isVerifyingRole && !loading) {
-      if (authUser.role === 'admin') {
-        router.push('/admin');
-      } else {
-        router.push('/dashboard');
-      }
+    if (!authLoading && authUser && !loading) {
+      if (authUser.role === 'admin') router.push('/admin');
+      else router.push('/dashboard');
     }
-  }, [authUser, authLoading, router, isVerifyingRole, loading]);
+  }, [authUser, authLoading, router, loading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,88 +43,55 @@ export default function LoginPage() {
     setError('');
 
     try {
-      let userId: string;
       if (isLogin) {
-        setIsVerifyingRole(true);
-        const user = await signIn(email, password);
-        userId = user.uid;
-        
-        // Wait a moment for database sync, then verify role
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Check if user's role matches the selected login role
+        const userCredential = await signIn(email, password);
+        const userId = userCredential.uid;
+
         try {
           const response = await fetch(`/api/users?userId=${userId}`);
+          
+          if (!response.ok) {
+            throw new Error('Failed to fetch user profile');
+          }
+
           const data = await response.json();
           
           if (!data.success || !data.data) {
-            // Sign out the user since role verification failed
-            await signOutUser();
-            setError('User not found in database. Please contact support.');
-            setLoading(false);
-            setIsVerifyingRole(false);
-            return;
+             throw new Error('User profile not found.');
           }
-          
-          const userRole = data.data.Role?.toLowerCase(); // Normalize to lowercase
+
+          const userRole = data.data.Role?.toLowerCase() || 'student'; // Default to student if undefined
           const selectedRole = loginRole.toLowerCase();
-          
-          // Verify the selected role matches the user's actual role
+
           if (userRole !== selectedRole) {
-            // Sign out the user since role verification failed
             await signOutUser();
-            setError(`You are trying to sign in as ${loginRole}, but your account is registered as ${userRole}. Please select the correct role and try again.`);
-            setLoading(false);
-            setIsVerifyingRole(false);
-            return;
+            throw new Error(`Access Denied: You are registered as a ${userRole}, but tried to login as a ${selectedRole}.`);
           }
-          
-          // Role matches, allow AuthContext to handle redirect
-          setIsVerifyingRole(false);
-          // Small delay to let AuthContext update
-          await new Promise(resolve => setTimeout(resolve, 300));
-          
-          // Redirect accordingly
+
           if (userRole === 'admin') {
             router.push('/admin');
           } else {
             router.push('/dashboard');
           }
-        } catch (err) {
-          // Sign out the user since role verification failed
+
+        } catch (fetchError: any) {
           await signOutUser();
-          setError('Failed to verify user role. Please try again.');
-          setLoading(false);
-          setIsVerifyingRole(false);
+          throw fetchError; 
         }
+
       } else {
-        // Sign up - always creates as student
-        if (!name) {
-          setError('Name is required');
-          setLoading(false);
-          return;
-        }
-        if (!year) {
-          setError('Year is required');
-          setLoading(false);
-          return;
-        }
-        if (!dept) {
-          setError('Department is required');
-          setLoading(false);
-          return;
-        }
-        const user = await signUp(email, password, name, year, dept, mobileNumber);
-        userId = user.uid;
+        if (!name || !year || !dept) throw new Error("Please fill all fields");
         
-        // Wait for database sync, then redirect to dashboard (sign-ups are always students)
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await signUp(email, password, name, year, dept, '');
+        
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
         router.push('/dashboard');
       }
     } catch (err: any) {
-      // Handle Firebase "email already in use" error specially
-      if (err.message?.includes('email-already-in-use')) {
-        setError('This email is already registered. Please sign in instead, or if you just signed up, try signing in now.');
+      console.error("Login Error:", err);
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+        setError('Invalid email or password.');
       } else {
         setError(err.message || 'Authentication failed');
       }
@@ -131,406 +99,156 @@ export default function LoginPage() {
     }
   };
 
-  const handleForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setForgotPasswordLoading(true);
-    setError('');
-
-    if (!forgotPasswordEmail) {
-      setError('Please enter your email address');
-      setForgotPasswordLoading(false);
-      return;
-    }
-
-    try {
-      await resetPassword(forgotPasswordEmail);
-      setForgotPasswordSuccess(true);
-    } catch (err: any) {
-      setError(err.message || 'Failed to send password reset email');
-    } finally {
-      setForgotPasswordLoading(false);
-    }
-  };
-
   const handleGoogleSignIn = async () => {
     setLoading(true);
-    setError('');
-    setIsVerifyingRole(true);
-
     try {
-      const user = await signInWithGoogle();
-      
-      // Wait for database sync, then verify role
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Check if user's role matches the selected login role
-      try {
-        const response = await fetch(`/api/users?userId=${user.uid}`);
-        const data = await response.json();
-        
-        if (!data.success || !data.data) {
-          // Sign out the user since role verification failed
-          await signOutUser();
-          setError('User not found in database. Please contact support.');
-          setLoading(false);
-          setIsVerifyingRole(false);
-          return;
-        }
-        
-        const userRole = data.data.Role?.toLowerCase(); // Normalize to lowercase
-        const selectedRole = loginRole.toLowerCase();
-        
-        // Verify the selected role matches the user's actual role
-        if (userRole !== selectedRole) {
-          // Sign out the user since role verification failed
-          await signOutUser();
-          setError(`You are trying to sign in as ${loginRole}, but your account is registered as ${userRole}. Please select the correct role and try again.`);
-          setLoading(false);
-          setIsVerifyingRole(false);
-          return;
-        }
-        
-        // Role matches, allow AuthContext to handle redirect
-        setIsVerifyingRole(false);
-        // Small delay to let AuthContext update
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
-        // Redirect accordingly
-        if (userRole === 'admin') {
-          router.push('/admin');
-        } else {
-          router.push('/dashboard');
-        }
-      } catch (err) {
-        // Sign out the user since role verification failed
-        await signOutUser();
-        setError('Failed to verify user role. Please try again.');
-        setLoading(false);
-        setIsVerifyingRole(false);
-      }
+        await signInWithGoogle();
     } catch (err: any) {
-      console.error('Google sign-in error:', err);
-      setError(err.message || 'Google sign-in failed');
-      setLoading(false);
-      setIsVerifyingRole(false);
+        setError(err.message);
+        setLoading(false);
     }
   };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setForgotLoading(true);
+      try {
+          await resetPassword(forgotPasswordEmail);
+          setForgotSuccess(true);
+      } catch (e: any) { setError(e.message); }
+      finally { setForgotLoading(false); }
+  }
 
   return (
     <>
       <Navbar />
-      <div style={{ maxWidth: '400px', margin: '4rem auto', padding: '2rem' }}>
-        <h2 style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          {isLogin ? 'Sign In' : 'Sign Up'}
-        </h2>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: '60px', background: 'radial-gradient(circle at 50% 50%, #172554 0%, #020617 100%)' }}>
+        <div className="glass-card" style={{ maxWidth: '420px', width: '90%', padding: '2.5rem', border: '1px solid rgba(255,255,255,0.1)' }}>
+          <h2 style={{ textAlign: 'center', marginBottom: '2rem', color: 'white', fontSize: '1.8rem' }}>
+            {isLogin ? 'Welcome Back' : 'Join the Club'}
+          </h2>
 
-        {error && (
-          <div className="error" style={{ marginBottom: '1rem' }}>
-            {error}
-          </div>
-        )}
+          {error && <div style={{ padding: '10px', background: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#f87171', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.9rem', display: 'flex', gap: '8px', alignItems: 'center' }}><WarningCircleIcon size={18} weight="duotone" /> {error}</div>}
 
-        <form onSubmit={handleSubmit} style={{ marginBottom: '1rem' }}>
-          {isLogin && (
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', fontSize: '0.9rem' }}>
-                I am signing in as:
-              </label>
-              <div style={{ display: 'flex', gap: '1rem' }}>
-                <button
-                  type="button"
-                  onClick={() => setLoginRole('student')}
-                  style={{
-                    flex: 1,
-                    padding: '0.75rem',
-                    border: `2px solid ${loginRole === 'student' ? '#2563eb' : '#d1d5db'}`,
-                    borderRadius: '8px',
-                    backgroundColor: loginRole === 'student' ? '#eff6ff' : 'white',
-                    color: loginRole === 'student' ? '#2563eb' : '#6b7280',
-                    fontWeight: loginRole === 'student' ? 'bold' : 'normal',
-                    cursor: 'pointer',
-                    fontSize: '0.95rem',
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  🎓 Student
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setLoginRole('admin')}
-                  style={{
-                    flex: 1,
-                    padding: '0.75rem',
-                    border: `2px solid ${loginRole === 'admin' ? '#2563eb' : '#d1d5db'}`,
-                    borderRadius: '8px',
-                    backgroundColor: loginRole === 'admin' ? '#eff6ff' : 'white',
-                    color: loginRole === 'admin' ? '#2563eb' : '#6b7280',
-                    fontWeight: loginRole === 'admin' ? 'bold' : 'normal',
-                    cursor: 'pointer',
-                    fontSize: '0.95rem',
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  🔧 Admin
+          <form onSubmit={handleSubmit}>
+            {isLogin && (
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.8rem', color: '#cbd5e1', fontSize: '0.9rem' }}>I am a:</label>
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  {['student', 'admin'].map((role) => (
+                      <button
+                        key={role}
+                        type="button"
+                        onClick={() => setLoginRole(role as any)}
+                        style={{
+                            flex: 1, padding: '10px', borderRadius: '8px',
+                            border: `1px solid ${loginRole === role ? '#3b82f6' : 'rgba(255,255,255,0.1)'}`,
+                            background: loginRole === role ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.03)',
+                            color: loginRole === role ? '#60a5fa' : '#94a3b8',
+                            cursor: 'pointer', textTransform: 'capitalize', fontWeight: loginRole === role ? '600' : '400',
+                            transition: 'all 0.2s ease'
+                        }}
+                      >
+                        {role}
+                      </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {!isLogin && (
+              <>
+                <input type="text" className="form-input" placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} required />
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <select className="form-input" value={year} onChange={(e) => setYear(e.target.value)} required>
+                        <option value="" style={{ color: 'black' }}>Year</option>
+                        <option value="First Year" style={{ color: 'black' }}>1st</option>
+                        <option value="Second Year" style={{ color: 'black' }}>2nd</option>
+                        <option value="Third Year" style={{ color: 'black' }}>3rd</option>
+                        <option value="Fourth Year" style={{ color: 'black' }}>4th</option>
+                    </select>
+                    <select className="form-input" value={dept} onChange={(e) => setDept(e.target.value)} required>
+                        <option value="" style={{ color: 'black' }}>Dept</option>
+                        <option value="CSE" style={{ color: 'black' }}>CSE</option>
+                        <option value="IT" style={{ color: 'black' }}>IT</option>
+                        <option value="ECE" style={{ color: 'black' }}>ECE</option>
+                        <option value="AIML" style={{ color: 'black' }}>AIML</option>
+                    </select>
+                </div>
+              </>
+            )}
+
+            <input type="email" className="form-input" placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <input type="password" className="form-input" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
+
+            {isLogin && (
+              <div style={{ textAlign: 'right', marginTop: '-0.5rem', marginBottom: '1.5rem' }}>
+                <button type="button" onClick={() => { setShowForgotPassword(true); setForgotPasswordEmail(email); }} style={{ background: 'none', border: 'none', color: '#60a5fa', cursor: 'pointer', fontSize: '0.85rem' }}>
+                  Forgot Password?
                 </button>
               </div>
-            </div>
-          )}
-          {!isLogin && (
-            <>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="Full Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required={!isLogin}
-              />
-              <select
-                className="form-input"
-                value={year}
-                onChange={(e) => setYear(e.target.value)}
-                required={!isLogin}
-                style={{ 
-                  padding: '0.75rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  fontSize: '1rem',
-                  backgroundColor: 'white'
-                }}
-              >
-                <option value="">Select Year</option>
-                <option value="First Year">First Year</option>
-                <option value="Second Year">Second Year</option>
-                <option value="Third Year">Third Year</option>
-                <option value="Fourth Year">Fourth Year</option>
-              </select>
-              <select
-                className="form-input"
-                value={dept}
-                onChange={(e) => setDept(e.target.value)}
-                required={!isLogin}
-                style={{ 
-                  padding: '0.75rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  fontSize: '1rem',
-                  backgroundColor: 'white'
-                }}
-              >
-                <option value="">Select Department</option>
-                <option value="CSE">Computer Science Engineering (CSE)</option>
-                <option value="IT">Information Technology (IT)</option>
-                <option value="ECE">Electronics and Communication Engineering (ECE)</option>
-                <option value="EE">Electrical Engineering (EE)</option>
-                <option value="ME">Mechanical Engineering (ME)</option>
-                <option value="CE">Civil Engineering (CE)</option>
-                <option value="Other">Other</option>
-              </select>
-            </>
-          )}
-          <input
-            type="email"
-            className="form-input"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <input
-            type="password"
-            className="form-input"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={6}
-          />
-          {isLogin && (
-            <div style={{ textAlign: 'right', marginTop: '0.5rem', marginBottom: '0.5rem' }}>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowForgotPassword(true);
-                  setForgotPasswordEmail(email); // Pre-fill with current email if available
-                }}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#2563eb',
-                  cursor: 'pointer',
-                  textDecoration: 'underline',
-                  fontSize: '0.9rem',
-                }}
-              >
-                Forgot Password?
-              </button>
-            </div>
-          )}
-          <button
-            type="submit"
-            className="btn"
-            style={{ width: '100%', marginTop: '10px' }}
-            disabled={loading}
-          >
-            {loading ? 'Loading...' : isLogin ? 'Sign In' : 'Sign Up'}
-          </button>
-        </form>
+            )}
 
-        <div style={{ marginBottom: '1rem' }}>
-          {isLogin && (
-            <div style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#f3f4f6', borderRadius: '8px', fontSize: '0.85rem', color: '#6b7280' }}>
-              <strong>Note:</strong> Make sure to select the correct role (Student/Admin) before signing in with Google.
-            </div>
-          )}
-          <button
-            onClick={handleGoogleSignIn}
-            className="btn-outline"
-            style={{ width: '100%' }}
-            disabled={loading}
-          >
+            <button type="submit" className="btn" style={{ width: '100%', marginBottom: '1rem' }} disabled={loading}>
+              {loading ? 'Processing...' : isLogin ? 'Sign In' : 'Sign Up'}
+            </button>
+          </form>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', margin: '1.5rem 0' }}>
+            <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }}></div>
+            <span style={{ color: '#64748b', fontSize: '0.8rem' }}>OR</span>
+            <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }}></div>
+          </div>
+
+          <button onClick={handleGoogleSignIn} className="btn-outline" style={{ width: '100%', justifyContent: 'center' }} disabled={loading}>
             Sign in with Google
           </button>
+
+          <p style={{ textAlign: 'center', marginTop: '2rem', color: '#94a3b8', fontSize: '0.9rem' }}>
+            {isLogin ? "New here? " : "Already a member? "}
+            <button onClick={() => { setIsLogin(!isLogin); setError(''); }} style={{ background: 'none', border: 'none', color: '#60a5fa', cursor: 'pointer', fontWeight: 'bold' }}>
+              {isLogin ? 'Create Account' : 'Sign In'}
+            </button>
+          </p>
         </div>
-
-        <div style={{ textAlign: 'center' }}>
-          <button
-            onClick={() => {
-              setIsLogin(!isLogin);
-              setError('');
-              setLoginRole('student'); // Reset to student when switching
-              setYear('');
-              setDept('');
-              setMobileNumber('');
-            }}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#2563eb',
-              cursor: 'pointer',
-              textDecoration: 'underline',
-            }}
-          >
-            {isLogin ? "Don't have an account? Sign Up" : 'Already have an account? Sign In'}
-          </button>
-        </div>
-
-        {/* Forgot Password Modal */}
-        {showForgotPassword && (
-          <div
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: 'rgba(0, 0, 0, 0.5)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 1000,
-            }}
-            onClick={() => {
-              if (!forgotPasswordLoading) {
-                setShowForgotPassword(false);
-                setForgotPasswordEmail('');
-                setForgotPasswordSuccess(false);
-                setError('');
-              }
-            }}
-          >
-            <div
-              className="card"
-              style={{
-                maxWidth: '500px',
-                width: '90%',
-                padding: '2rem',
-                position: 'relative',
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {forgotPasswordSuccess ? (
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>✅</div>
-                  <h3 style={{ marginTop: 0, marginBottom: '1rem' }}>Check Your Email</h3>
-                  <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>
-                    We've sent a password reset link to <strong>{forgotPasswordEmail}</strong>
-                  </p>
-                  <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-                    Please check your inbox and click the link to reset your password. The link will expire in 1 hour.
-                  </p>
-                  <button
-                    className="btn"
-                    onClick={() => {
-                      setShowForgotPassword(false);
-                      setForgotPasswordEmail('');
-                      setForgotPasswordSuccess(false);
-                    }}
-                  >
-                    Close
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <h3 style={{ marginTop: 0, marginBottom: '1rem' }}>Reset Password</h3>
-                  <p style={{ color: '#64748b', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-                    Enter your email address and we'll send you a link to reset your password.
-                  </p>
-                  <form onSubmit={handleForgotPassword}>
-                    <div style={{ marginBottom: '1.5rem' }}>
-                      <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-                        Email Address <span style={{ color: 'red' }}>*</span>
-                      </label>
-                      <input
-                        type="email"
-                        className="form-input"
-                        placeholder="Enter your email"
-                        value={forgotPasswordEmail}
-                        onChange={(e) => setForgotPasswordEmail(e.target.value)}
-                        required
-                        disabled={forgotPasswordLoading}
-                        style={{ width: '100%' }}
-                        autoFocus
-                      />
-                    </div>
-
-                    {error && (
-                      <div className="error" style={{ marginBottom: '1rem' }}>
-                        {error}
-                      </div>
-                    )}
-
-                    <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-                      <button
-                        type="button"
-                        className="btn-outline"
-                        onClick={() => {
-                          if (!forgotPasswordLoading) {
-                            setShowForgotPassword(false);
-                            setForgotPasswordEmail('');
-                            setError('');
-                          }
-                        }}
-                        disabled={forgotPasswordLoading}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        className="btn"
-                        disabled={forgotPasswordLoading || !forgotPasswordEmail}
-                      >
-                        {forgotPasswordLoading ? 'Sending...' : 'Send Reset Link'}
-                      </button>
-                    </div>
-                  </form>
-                </>
-              )}
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Forgot Password Modal */}
+      {showForgotPassword && (
+        <div style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)', backdropFilter: 'blur(8px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100,
+        }} onClick={() => !forgotLoading && setShowForgotPassword(false)}>
+            <div className="glass-card" style={{ maxWidth: '450px', width: '90%', position: 'relative' }} onClick={(e) => e.stopPropagation()}>
+                <button onClick={() => setShowForgotPassword(false)} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
+                    <XIcon size={20}  />
+                </button>
+                
+                {forgotSuccess ? (
+                    <div style={{ textAlign: 'center', padding: '1rem' }}>
+                        <CheckCircleIcon size={48} color="#4ade80" weight="duotone" style={{ margin: '0 auto 1rem' }} />
+                        <h3 style={{ color: 'white', marginBottom: '0.5rem' }}>Check your inbox</h3>
+                        <p style={{ color: '#94a3b8' }}>We sent a reset link to <strong>{forgotPasswordEmail}</strong></p>
+                    </div>
+                ) : (
+                    <>
+                        <h3 style={{ color: 'white', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                           <EnvelopeSimpleIcon size={24} weight="duotone" /> Reset Password
+                        </h3>
+                        <p style={{ color: '#94a3b8', marginBottom: '1.5rem', fontSize: '0.9rem' }}>Enter your email to receive a reset link.</p>
+                        <form onSubmit={handleForgotPassword}>
+                            <input type="email" className="form-input" placeholder="Enter your email" value={forgotPasswordEmail} onChange={(e) => setForgotPasswordEmail(e.target.value)} required />
+                            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
+                                <button type="button" className="btn-outline" onClick={() => setShowForgotPassword(false)}>Cancel</button>
+                                <button type="submit" className="btn" disabled={forgotLoading}>{forgotLoading ? 'Sending...' : 'Send Link'}</button>
+                            </div>
+                        </form>
+                    </>
+                )}
+            </div>
+        </div>
+      )}
     </>
   );
 }
-

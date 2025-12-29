@@ -3,19 +3,27 @@
 import React from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { 
+  UserIcon, 
+  CalendarBlankIcon, 
+  UsersIcon, 
+  ClipboardTextIcon, 
+  ChatIcon, 
+  WrenchIcon 
+} from '@phosphor-icons/react/dist/ssr';
 
 interface SidebarItem {
   label: string;
   path: string;
-  icon: string;
+  icon: React.ReactNode;
 }
 
 const sidebarItems: SidebarItem[] = [
-  { label: 'Profile', path: '/admin', icon: '👤' },
-  { label: 'Event Management', path: '/admin/events', icon: '📅' },
-  { label: 'Member Management', path: '/admin/members', icon: '👥' },
-  { label: 'Registration Management', path: '/admin/registrations', icon: '📝' },
-  { label: 'Club Inquiry', path: '/admin/inquiries', icon: '💬' },
+  { label: 'Profile', path: '/admin', icon: <UserIcon size={20} weight="duotone" /> },
+  { label: 'Event Management', path: '/admin/events', icon: <CalendarBlankIcon size={20} weight="duotone" /> },
+  { label: 'Member Management', path: '/admin/members', icon: <UsersIcon size={20} weight="duotone" /> },
+  { label: 'Registrations', path: '/admin/registrations', icon: <ClipboardTextIcon size={20} weight="duotone" /> },
+  { label: 'Club Inquiry', path: '/admin/inquiries', icon: <ChatIcon size={20} weight="duotone" /> },
 ];
 
 export default function AdminSidebar() {
@@ -27,102 +35,50 @@ export default function AdminSidebar() {
     <div
       style={{
         width: '280px',
-        minHeight: 'calc(100vh - 60px)',
-        background: '#ffffff',
-        color: '#000000',
-        padding: '0',
+        minHeight: 'calc(100vh - 65px)',
+        background: 'rgba(2, 6, 23, 0.95)',
+        borderRight: '1px solid rgba(255, 255, 255, 0.08)',
         position: 'fixed',
-        top: '60px',
+        top: '65px',
         left: 0,
         display: 'flex',
         flexDirection: 'column',
-        overflowY: 'auto',
-        boxShadow: '4px 0 20px rgba(0, 0, 0, 0.1)',
-        borderRight: '1px solid #e5e7eb',
-        zIndex: 100,
+        zIndex: 40,
+        backdropFilter: 'blur(10px)'
       }}
     >
-      {/* Logo/Header */}
-      <div style={{ 
-        padding: '2rem 1.5rem', 
-        borderBottom: '1px solid #e5e7eb',
-        background: '#f9fafb',
-      }}>
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: '0.75rem',
-          marginBottom: '1rem'
-        }}>
+      {/* Header */}
+      <div style={{ padding: '1.5rem', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
           <div style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '10px',
+            width: '40px', height: '40px', borderRadius: '10px',
             background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '1.25rem',
-            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 0 15px rgba(59, 130, 246, 0.4)', color: 'white', fontSize: '1.2rem'
           }}>
-            🔧
+            <WrenchIcon size={24} weight="duotone" color="white" />
           </div>
-          <div>
-            <h2 style={{ 
-              margin: 0, 
-              fontSize: '1.25rem', 
-              fontWeight: '800',
-              letterSpacing: '-0.5px',
-              color: '#000000',
-            }}>
-              Admin Panel
-            </h2>
-          </div>
+          <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 'bold', color: 'white' }}>
+            Admin Panel
+          </h2>
         </div>
+
         {authUser && (
-          <div style={{ 
-            padding: '0.75rem',
-            borderRadius: '8px',
-            background: '#f3f4f6',
-            border: '1px solid #e5e7eb',
-          }}>
-            <p style={{ 
-              margin: 0, 
-              fontSize: '0.75rem', 
-              color: '#6b7280',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-              fontWeight: '600',
-              marginBottom: '0.25rem',
-            }}>
+          <div style={{ padding: '1rem', borderRadius: '8px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+            <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', marginBottom: '0.25rem', fontWeight: 'bold' }}>
               Logged in as
             </p>
-            <p style={{ 
-              margin: 0, 
-              fontSize: '0.875rem', 
-              color: '#000000',
-              fontWeight: '600',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            }}>
+            <p style={{ margin: 0, fontSize: '0.9rem', color: 'white', fontWeight: '500', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {authUser.displayName || authUser.email}
             </p>
           </div>
         )}
       </div>
 
-      {/* Navigation Items */}
-      <nav style={{ 
-        flex: 1, 
-        display: 'flex', 
-        flexDirection: 'column',
-        padding: '0.5rem 0.75rem',
-        gap: '0.125rem',
-      }}>
+      {/* Nav Items */}
+      <nav style={{ flex: 1, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         {sidebarItems.map((item) => {
-          const isActive = pathname === item.path || 
-            (item.path !== '/admin' && pathname?.startsWith(item.path));
+          const isActive = pathname === item.path || (item.path !== '/admin' && pathname?.startsWith(item.path));
           
           return (
             <button
@@ -130,105 +86,40 @@ export default function AdminSidebar() {
               onClick={() => router.push(item.path)}
               style={{
                 width: '100%',
-                padding: '0.625rem 1rem',
-                backgroundColor: isActive 
-                  ? '#eff6ff' 
-                  : 'transparent',
-                color: isActive ? '#1e40af' : '#000000',
-                border: 'none',
+                padding: '12px 16px',
+                backgroundColor: isActive ? 'rgba(59, 130, 246, 0.15)' : 'transparent',
+                color: isActive ? '#60a5fa' : '#94a3b8',
+                border: '1px solid',
+                borderColor: isActive ? 'rgba(59, 130, 246, 0.3)' : 'transparent',
                 textAlign: 'left',
                 cursor: 'pointer',
-                fontSize: '0.9375rem',
+                fontSize: '0.95rem',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.875rem',
+                gap: '12px',
+                borderRadius: '8px',
                 transition: 'all 0.2s ease',
-                borderRadius: '10px',
-                borderLeft: isActive ? '3px solid #3b82f6' : '3px solid transparent',
-                position: 'relative',
-                fontWeight: isActive ? '700' : '600',
-                boxShadow: isActive 
-                  ? '0 2px 8px rgba(59, 130, 246, 0.2)' 
-                  : 'none',
+                fontWeight: isActive ? '600' : '400',
               }}
               onMouseEnter={(e) => {
                 if (!isActive) {
-                  e.currentTarget.style.backgroundColor = '#f3f4f6';
-                  e.currentTarget.style.color = '#000000';
-                  e.currentTarget.style.transform = 'translateX(4px)';
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.03)';
+                  e.currentTarget.style.color = 'white';
                 }
               }}
               onMouseLeave={(e) => {
                 if (!isActive) {
                   e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.color = '#000000';
-                  e.currentTarget.style.transform = 'translateX(0)';
+                  e.currentTarget.style.color = '#94a3b8';
                 }
               }}
             >
-              <span style={{ 
-                fontSize: '1.125rem', 
-                minWidth: '24px', 
-                textAlign: 'center',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                filter: isActive ? 'none' : 'opacity(0.8)',
-              }}>
-                {item.icon}
-              </span>
-              <span style={{ 
-                flex: 1,
-                letterSpacing: '0.2px',
-              }}>
-                {item.label}
-              </span>
-              {isActive && (
-                <div style={{
-                  width: '6px',
-                  height: '6px',
-                  borderRadius: '50%',
-                  backgroundColor: '#3b82f6',
-                  boxShadow: '0 0 8px rgba(59, 130, 246, 0.6)',
-                }} />
-              )}
+              <span style={{ opacity: isActive ? 1 : 0.7 }}>{item.icon}</span>
+              <span>{item.label}</span>
             </button>
           );
         })}
       </nav>
-
-      {/* Footer */}
-      <div style={{ 
-        padding: '1.5rem',
-        borderTop: '1px solid #e5e7eb',
-        background: '#f9fafb',
-      }}>
-        <div style={{
-          padding: '0.75rem',
-          borderRadius: '8px',
-          background: '#f3f4f6',
-          textAlign: 'center',
-        }}>
-          <p style={{ 
-            margin: 0, 
-            fontSize: '0.8125rem', 
-            color: '#000000',
-            fontWeight: '700',
-            letterSpacing: '0.5px',
-          }}>
-            AR/VR Club
-          </p>
-          <p style={{ 
-            margin: '0.25rem 0 0 0', 
-            fontSize: '0.75rem', 
-            color: '#374151',
-            fontWeight: '600',
-          }}>
-            GHRCEM
-          </p>
-        </div>
-      </div>
     </div>
   );
 }
-

@@ -2,6 +2,12 @@
 
 import React, { useState } from 'react';
 import { changePassword } from '@/lib/firebase/auth';
+import { 
+  XCircleIcon, 
+  CheckCircleIcon, 
+  WarningCircleIcon, 
+  LockKeyIcon 
+} from '@phosphor-icons/react/dist/ssr';
 
 interface ChangePasswordModalProps {
   isOpen: boolean;
@@ -21,24 +27,16 @@ export default function ChangePasswordModal({ isOpen, onClose }: ChangePasswordM
     setError('');
     setSuccess(false);
 
-    // Validation
     if (!currentPassword || !newPassword || !confirmPassword) {
       setError('All fields are required');
       return;
     }
-
     if (newPassword.length < 6) {
       setError('New password must be at least 6 characters long');
       return;
     }
-
     if (newPassword !== confirmPassword) {
       setError('New passwords do not match');
-      return;
-    }
-
-    if (currentPassword === newPassword) {
-      setError('New password must be different from current password');
       return;
     }
 
@@ -47,11 +45,9 @@ export default function ChangePasswordModal({ isOpen, onClose }: ChangePasswordM
     try {
       await changePassword(currentPassword, newPassword);
       setSuccess(true);
-      // Reset form
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      // Close modal after 2 seconds
       setTimeout(() => {
         onClose();
         setSuccess(false);
@@ -63,63 +59,41 @@ export default function ChangePasswordModal({ isOpen, onClose }: ChangePasswordM
     }
   };
 
-  const handleClose = () => {
-    if (!loading) {
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-      setError('');
-      setSuccess(false);
-      onClose();
-    }
-  };
-
   if (!isOpen) return null;
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-      }}
-      onClick={handleClose}
-    >
-      <div
-        className="card"
-        style={{
-          maxWidth: '500px',
-          width: '90%',
-          padding: '2rem',
-          position: 'relative',
-        }}
+    <div style={{
+      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.8)', backdropFilter: 'blur(8px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100,
+    }} onClick={onClose}>
+      <div 
+        className="glass-card"
+        style={{ maxWidth: '450px', width: '90%', position: 'relative', border: '1px solid rgba(255,255,255,0.1)' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 style={{ marginTop: 0, marginBottom: '1.5rem' }}>🔒 Change Password</h3>
+        <button 
+          onClick={onClose} 
+          style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
+        >
+          <XCircleIcon size={20} weight="duotone" />
+        </button>
+
+        <h3 style={{ marginTop: 0, marginBottom: '1.5rem', color: 'white', fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <LockKeyIcon size={24} weight="duotone" /> Change Password
+        </h3>
 
         {success ? (
           <div style={{ textAlign: 'center', padding: '2rem' }}>
-            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>✅</div>
-            <p style={{ color: '#10b981', fontSize: '1.1rem', fontWeight: 'bold' }}>
+            <CheckCircleIcon size={48} color="#4ade80" weight="duotone" style={{ margin: '0 auto 1rem' }} />
+            <p style={{ color: '#4ade80', fontSize: '1.1rem', fontWeight: 'bold' }}>
               Password changed successfully!
-            </p>
-            <p style={{ color: '#64748b', marginTop: '0.5rem' }}>
-              This window will close automatically...
             </p>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
             <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-                Current Password <span style={{ color: 'red' }}>*</span>
-              </label>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Current Password</label>
               <input
                 type="password"
                 className="form-input"
@@ -127,15 +101,11 @@ export default function ChangePasswordModal({ isOpen, onClose }: ChangePasswordM
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 required
                 disabled={loading}
-                style={{ width: '100%' }}
-                autoComplete="current-password"
               />
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-                New Password <span style={{ color: 'red' }}>*</span>
-              </label>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: '#cbd5e1', fontSize: '0.9rem' }}>New Password</label>
               <input
                 type="password"
                 className="form-input"
@@ -144,16 +114,12 @@ export default function ChangePasswordModal({ isOpen, onClose }: ChangePasswordM
                 required
                 disabled={loading}
                 minLength={6}
-                style={{ width: '100%' }}
-                autoComplete="new-password"
-                placeholder="At least 6 characters"
+                placeholder="Min 6 characters"
               />
             </div>
 
             <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-                Confirm New Password <span style={{ color: 'red' }}>*</span>
-              </label>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Confirm New Password</label>
               <input
                 type="password"
                 className="form-input"
@@ -162,32 +128,21 @@ export default function ChangePasswordModal({ isOpen, onClose }: ChangePasswordM
                 required
                 disabled={loading}
                 minLength={6}
-                style={{ width: '100%' }}
-                autoComplete="new-password"
               />
             </div>
 
             {error && (
-              <div className="error" style={{ marginBottom: '1rem' }}>
-                {error}
+              <div style={{ padding: '10px', marginBottom: '1rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#f87171', borderRadius: '8px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <WarningCircleIcon size={16} weight="duotone" /> {error}
               </div>
             )}
 
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-              <button
-                type="button"
-                className="btn-outline"
-                onClick={handleClose}
-                disabled={loading}
-              >
+              <button type="button" className="btn-outline" onClick={onClose} disabled={loading}>
                 Cancel
               </button>
-              <button
-                type="submit"
-                className="btn"
-                disabled={loading}
-              >
-                {loading ? 'Changing...' : 'Change Password'}
+              <button type="submit" className="btn" disabled={loading}>
+                {loading ? 'Updating...' : 'Update'}
               </button>
             </div>
           </form>
@@ -196,4 +151,3 @@ export default function ChangePasswordModal({ isOpen, onClose }: ChangePasswordM
     </div>
   );
 }
-

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useRouter } from 'next/navigation';
+import { ListIcon, XCircleIcon } from '@phosphor-icons/react/dist/ssr';
 
 export default function Navbar() {
   const { user, authUser, loading } = useAuth();
@@ -15,76 +16,75 @@ export default function Navbar() {
     try {
       await signOutUser();
       router.push('/');
+      setShowMenu(false);
     } catch (error) {
       console.error('Sign out error:', error);
     }
   };
 
+  const closeMenu = () => setShowMenu(false);
+
   return (
-    <nav>
-      <div className="brand-container">
-        <img
-          src="/Assets/WhatsApp Image 2025-09-17 at 15.28.37.jpg"
-          alt="Logo"
-          style={{ height: '40px', width: 'auto' }}
-        />
-        <div className="logo">AR VR Club | Computer Engineering Department</div>
-      </div>
-      <ul>
-        <li>
-          <Link href="/">Home</Link>
-        </li>
-        <li>
-          <Link href="/#about">About</Link>
-        </li>
-        <li>
-          <Link href="/#team">Team</Link>
-        </li>
-        <li>
-          <Link href="/#contact">Contact</Link>
-        </li>
-        {loading ? (
-          <li>Loading...</li>
-        ) : user ? (
-          <>
-            {authUser?.role === 'admin' ? (
+    <nav className="navbar-glass">
+      <div className="container nav-container">
+        <Link href="/" className="brand-container" onClick={closeMenu}>
+          <img
+            src="/Assets/logo-clear-bg.png"
+            alt="Logo"
+            className="nav-logo"
+          />
+          <div className="brand-text">
+            <span className="brand-title">AR/VR Club</span>
+            <span className="brand-subtitle">GHRCEM</span>
+          </div>
+        </Link>
+
+        <button 
+          className="mobile-toggle" 
+          onClick={() => setShowMenu(!showMenu)}
+          aria-label="Toggle Menu"
+        >
+          {showMenu ? <XCircleIcon size={24} color="white" weight="duotone" /> : <ListIcon size={24} color="white" />}
+        </button>
+
+        <ul className={`nav-links ${showMenu ? 'active' : ''}`}>
+          <li><Link href="/" onClick={closeMenu}>Home</Link></li>
+          <li><Link href="/#about" onClick={closeMenu}>About</Link></li>
+          <li><Link href="/#team" onClick={closeMenu}>Team</Link></li>
+          <li><Link href="/#contact" onClick={closeMenu}>Contact</Link></li>
+
+          {loading ? (
+            <li style={{ color: '#94a3b8' }}>...</li>
+          ) : user ? (
+            <>
+              {authUser?.role === 'admin' ? (
+                <li>
+                  <Link href="/admin" className="btn-nav" onClick={closeMenu}>
+                    Admin Panel
+                  </Link>
+                </li>
+              ) : (
+                <li>
+                  <Link href="/dashboard" className="btn-nav" onClick={closeMenu}>
+                    Dashboard
+                  </Link>
+                </li>
+              )}
               <li>
-                <Link href="/admin" className="btn" style={{ padding: '5px 15px', fontSize: '0.9rem' }}>
-                  Admin Dashboard
-                </Link>
+                <button onClick={handleSignOut} className="btn-nav-outline">
+                  Sign Out
+                </button>
               </li>
-            ) : (
-              <li>
-                <Link href="/dashboard" className="btn" style={{ padding: '5px 15px', fontSize: '0.9rem' }}>
-                  Dashboard
-                </Link>
-              </li>
-            )}
+            </>
+          ) : (
             <li>
-              <button onClick={handleSignOut} className="btn-outline" style={{ padding: '5px 15px', fontSize: '0.9rem' }}>
-                Sign Out
-              </button>
+              <Link href="/login" className="btn-nav-primary" onClick={closeMenu}>
+                Sign In
+              </Link>
             </li>
-          </>
-        ) : (
-          <li>
-            <Link
-              href="/login"
-              style={{
-                color: '#2563eb',
-                fontWeight: 'bold',
-                border: '2px solid #2563eb',
-                padding: '5px 15px',
-                borderRadius: '20px',
-                transition: 'all 0.3s',
-              }}
-            >
-              Sign In
-            </Link>
-          </li>
-        )}
-      </ul>
+          )}
+        </ul>
+      </div>
     </nav>
   );
 }
-

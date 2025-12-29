@@ -3,8 +3,9 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { motion } from 'framer-motion';
 
-// Event type matching API response format
+// Event type
 interface Event {
   ID: string;
   Title: string;
@@ -36,13 +37,12 @@ export default function EventsList() {
       const data = await response.json();
       
       if (data.success) {
-        // Filter only upcoming/open events
         const now = new Date();
         const upcomingEvents = data.data.filter((event: Event) => {
           const eventDate = new Date(event.StartTime);
           return eventDate >= now && (event.Status === 'Open' || event.Status === 'Full');
         });
-        setEvents(upcomingEvents.slice(0, 6)); // Show max 6 events
+        setEvents(upcomingEvents.slice(0, 6)); 
       } else {
         setError(data.error || 'Failed to load events');
       }
@@ -55,37 +55,39 @@ export default function EventsList() {
 
   if (loading) {
     return (
-      <div className="section">
+      <div className="section container text-center">
         <h2>Upcoming Events</h2>
-        <div className="loading">Loading events...</div>
+        <div style={{ color: '#94a3b8', marginTop: '2rem' }}>Loading the future...</div>
       </div>
     );
   }
 
-  if (error) {
+  if (error || events.length === 0) {
     return (
-      <div className="section">
+      <div className="section container text-center">
         <h2>Upcoming Events</h2>
-        <div className="error">{error}</div>
-      </div>
-    );
-  }
-
-  if (events.length === 0) {
-    return (
-      <div className="section">
-        <h2>Upcoming Events</h2>
-        <p style={{ textAlign: 'center', color: '#64748b' }}>No upcoming events at the moment. Check back soon!</p>
+        <div className="glass-card" style={{ maxWidth: '600px', margin: '2rem auto', textAlign: 'center' }}>
+          <p style={{ color: '#94a3b8' }}>
+            {error || "No upcoming events scheduled."}
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="section">
-      <h2>Upcoming Events</h2>
-      <div className="grid">
-        {events.map((event) => (
-          <div key={event.ID} className="card">
+    <div className="section container">
+      <h2 style={{ fontSize: '2.5rem', marginBottom: '3rem', textAlign: 'center' }}>Upcoming Events</h2>
+      <div className="grid-layout">
+        {events.map((event, index) => (
+          <motion.div 
+            key={event.ID} 
+            className="glass-card"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: index * 0.1 }}
+          >
             {event.ImageURL && (
               <img
                 src={event.ImageURL}
@@ -94,65 +96,44 @@ export default function EventsList() {
                   width: '100%',
                   height: '200px',
                   objectFit: 'cover',
-                  borderRadius: '8px',
+                  borderRadius: '12px',
                   marginBottom: '1rem',
+                  border: '1px solid rgba(255,255,255,0.1)'
                 }}
               />
             )}
-            <h3>{event.Title}</h3>
-            <p style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.5rem' }}>
+              <h3 style={{ fontSize: '1.25rem', color: 'white' }}>{event.Title}</h3>
+              <span className={`status-badge ${event.Status === 'Open' ? 'status-active' : 'status-warning'}`}>
+                {event.Status}
+              </span>
+            </div>
+            
+            <p style={{ fontSize: '0.9rem', color: '#94a3b8', marginBottom: '1.5rem', lineHeight: '1.5' }}>
               {event.Description.length > 100
                 ? `${event.Description.substring(0, 100)}...`
                 : event.Description}
             </p>
-            <div style={{ marginBottom: '1rem', fontSize: '0.85rem', color: '#64748b' }}>
-              <p>
-                <strong>Date:</strong> {new Date(event.StartTime).toLocaleDateString()}
-              </p>
-              <p>
-                <strong>Time:</strong> {new Date(event.StartTime).toLocaleTimeString()} -{' '}
-                {new Date(event.EndTime).toLocaleTimeString()}
-              </p>
-              <p>
-                <strong>Capacity:</strong> {event.CurrentCount} / {event.MaxCapacity}
-              </p>
+
+            <div style={{ marginBottom: '1.5rem', fontSize: '0.85rem', color: '#cbd5e1', background: 'rgba(0,0,0,0.2)', padding: '10px', borderRadius: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                <span>📅 {new Date(event.StartTime).toLocaleDateString()}</span>
+                <span>🕒 {new Date(event.StartTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+              </div>
+              <div>👥 Seats: {event.CurrentCount} / {event.MaxCapacity}</div>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', gap: '0.5rem' }}>
-              <span
-                className={`status-badge ${
-                  event.Status === 'Open' ? 'status-active' : event.Status === 'Full' ? 'status-warning' : 'status-closed'
-                }`}
-              >
-                {event.Status}
-              </span>
-              {(event.Status === 'Open' || event.Status === 'Full') && (
-                <button
-                  className={event.Status === 'Open' ? 'btn' : 'btn-outline'}
-                  onClick={() => {
-                    if (user) {
-                      // User is logged in, redirect to dashboard
-                      router.push('/dashboard');
-                    } else {
-                      // User is not logged in, redirect to login
-                      router.push('/login');
-                    }
-                  }}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    fontSize: '0.9rem',
-                    fontWeight: '600',
-                    whiteSpace: 'nowrap',
-                  }}
-                  disabled={event.Status === 'Full'}
-                >
-                  Register Now
-                </button>
-              )}
-            </div>
-          </div>
+
+            <button
+              className={event.Status === 'Open' ? 'btn' : 'btn-outline'}
+              style={{ width: '100%' }}
+              onClick={() => router.push(user ? '/dashboard' : '/login')}
+              disabled={event.Status === 'Full'}
+            >
+              {event.Status === 'Full' ? 'Registration Full' : 'Register Now'}
+            </button>
+          </motion.div>
         ))}
       </div>
     </div>
   );
 }
-
