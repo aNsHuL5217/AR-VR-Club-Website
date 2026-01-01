@@ -74,6 +74,9 @@ export default function MemberManagementPage() {
     message: ''
   });
 
+  // FIX: Dark style for dropdown options
+  const optionStyle = { backgroundColor: '#1e293b', color: 'white' };
+
   useEffect(() => {
     if (!authLoading) {
       if (!authUser) router.push('/login');
@@ -237,23 +240,23 @@ export default function MemberManagementPage() {
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Role</label>
                   <select className="form-input" value={filters.role} onChange={(e) => setFilters({ ...filters, role: e.target.value })} style={{ marginBottom: 0 }}>
-                    <option value="" style={{ color: 'black' }}>All</option>
-                    <option value="student" style={{ color: 'black' }}>Student</option>
-                    <option value="admin" style={{ color: 'black' }}>Admin</option>
+                    <option value="" style={optionStyle}>All</option>
+                    <option value="student" style={optionStyle}>Student</option>
+                    <option value="admin" style={optionStyle}>Admin</option>
                   </select>
                 </div>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Year</label>
                   <select className="form-input" value={filters.year} onChange={(e) => setFilters({ ...filters, year: e.target.value })} style={{ marginBottom: 0 }}>
-                    <option value="" style={{ color: 'black' }}>All</option>
-                    {uniqueYears.map(y => <option key={y} value={y} style={{ color: 'black' }}>{y}</option>)}
+                    <option value="" style={optionStyle}>All</option>
+                    {uniqueYears.map(y => <option key={y} value={y} style={optionStyle}>{y}</option>)}
                   </select>
                 </div>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Dept</label>
                   <select className="form-input" value={filters.dept} onChange={(e) => setFilters({ ...filters, dept: e.target.value })} style={{ marginBottom: 0 }}>
-                    <option value="" style={{ color: 'black' }}>All</option>
-                    {uniqueDepts.map(d => <option key={d} value={d} style={{ color: 'black' }}>{d}</option>)}
+                    <option value="" style={optionStyle}>All</option>
+                    {uniqueDepts.map(d => <option key={d} value={d} style={optionStyle}>{d}</option>)}
                   </select>
                 </div>
                 <button className="btn-outline" onClick={() => setFilters({ role: '', year: '', dept: '', search: '' })} style={{ height: '46px' }}>Clear</button>
@@ -319,7 +322,7 @@ export default function MemberManagementPage() {
           <div className="glass-card" style={{ maxWidth: '600px', width: '90%', maxHeight: '90vh', overflowY: 'auto', padding: '2rem' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
               <h3 style={{ color: 'white', margin: 0 }}>{editingMember ? 'Edit' : 'Add'} Member</h3>
-              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}><XIcon size={20} weight="duotone" /></button>
+              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}><XIcon size={20} /></button>
             </div>
 
             <form onSubmit={handleSubmit}>
@@ -337,19 +340,19 @@ export default function MemberManagementPage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                 <div>
                   <label style={{ color: '#cbd5e1', fontSize: '0.9rem', marginBottom: '0.5rem', display: 'block' }}>Role</label>
-                  <select className="form-input" value={formData.Role} onChange={e => setFormData({ ...formData, Role: e.target.value as any })} style={{ color: 'black' }}>
-                    <option value="student">Student</option>
-                    <option value="admin">Admin</option>
+                  <select className="form-input" value={formData.Role} onChange={e => setFormData({ ...formData, Role: e.target.value as any })}>
+                    <option value="student" style={optionStyle}>Student</option>
+                    <option value="admin" style={optionStyle}>Admin</option>
                   </select>
                 </div>
                 <div>
                   <label style={{ color: '#cbd5e1', fontSize: '0.9rem', marginBottom: '0.5rem', display: 'block' }}>Year</label>
-                  <select className="form-input" value={formData.Year} onChange={e => setFormData({ ...formData, Year: e.target.value })} style={{ color: 'black' }}>
-                    <option value="">Select Year</option>
-                    <option value="First Year">First Year</option>
-                    <option value="Second Year">Second Year</option>
-                    <option value="Third Year">Third Year</option>
-                    <option value="Fourth Year">Fourth Year</option>
+                  <select className="form-input" value={formData.Year} onChange={e => setFormData({ ...formData, Year: e.target.value })}>
+                    <option value="" style={optionStyle}>Select Year</option>
+                    <option value="First Year" style={optionStyle}>First Year</option>
+                    <option value="Second Year" style={optionStyle}>Second Year</option>
+                    <option value="Third Year" style={optionStyle}>Third Year</option>
+                    <option value="Fourth Year" style={optionStyle}>Fourth Year</option>
                   </select>
                 </div>
               </div>
@@ -357,14 +360,14 @@ export default function MemberManagementPage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                 <div>
                   <label style={{ color: '#cbd5e1', fontSize: '0.9rem', marginBottom: '0.5rem', display: 'block' }}>Department</label>
-                  <select className="form-input" value={formData.Dept} onChange={e => setFormData({ ...formData, Dept: e.target.value })} style={{ color: 'black' }}>
-                    <option value="">Select Dept</option>
-                    <option value="CSE">CSE</option>
-                    <option value="IT">IT</option>
-                    <option value="ECE">ECE</option>
-                    <option value="EE">EE</option>
-                    <option value="ME">ME</option>
-                    <option value="CE">CE</option>
+                  <select className="form-input" value={formData.Dept} onChange={e => setFormData({ ...formData, Dept: e.target.value })}>
+                    <option value="" style={optionStyle}>Select Dept</option>
+                    <option value="CSE" style={optionStyle}>CSE</option>
+                    <option value="IT" style={optionStyle}>IT</option>
+                    <option value="ECE" style={optionStyle}>ECE</option>
+                    <option value="EE" style={optionStyle}>EE</option>
+                    <option value="ME" style={optionStyle}>ME</option>
+                    <option value="CE" style={optionStyle}>CE</option>
                   </select>
                 </div>
                 <div>

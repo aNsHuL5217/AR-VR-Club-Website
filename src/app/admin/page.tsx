@@ -48,6 +48,9 @@ export default function AdminDashboard() {
     message: ''
   });
 
+  // FIX: Common style for dropdown options to fix readability
+  const optionStyle = { backgroundColor: '#1e293b', color: 'white' };
+
   useEffect(() => {
     if (!loading) {
       if (!authUser) router.push('/login');
@@ -59,7 +62,7 @@ export default function AdminDashboard() {
     if (authUser) {
       setProfileYear(authUser.year || '');
       setProfileDept(authUser.dept || '');
-      setProfileRollNo(authUser.rollNo || ''); // Note: authUser from context might need rollNo mapping if not present, but assuming consistent User type
+      setProfileRollNo(authUser.rollNo || ''); 
       setProfileMobile(authUser.mobileNumber || '');
     }
   }, [authUser]);
@@ -128,12 +131,14 @@ export default function AdminDashboard() {
                 <h2 style={{ margin: 0, fontSize: '2rem', fontWeight: 'bold', color: 'white' }}>Profile Settings</h2>
                 <p style={{ margin: '0.5rem 0 0 0', color: '#94a3b8' }}>Manage your admin account details</p>
               </div>
-              <button className="btn-outline" onClick={() => setShowPasswordModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <LockKeyIcon size={18} weight="duotone" /> Change Password
-              </button>
-              <button className="btn" onClick={() => setShowProfileModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <PencilSimpleIcon size={18} weight="duotone" /> Edit Profile
-              </button>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button className="btn-outline" onClick={() => setShowPasswordModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <LockKeyIcon size={18} weight="duotone" /> Change Password
+                </button>
+                <button className="btn" onClick={() => setShowProfileModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <PencilSimpleIcon size={18} weight="duotone" /> Edit Profile
+                </button>
+              </div>
             </div>
 
             {/* Profile Card */}
@@ -250,7 +255,7 @@ export default function AdminDashboard() {
         }} onClick={() => !profileLoading && setShowProfileModal(false)}>
           <div className="glass-card" style={{ maxWidth: '500px', width: '90%', position: 'relative' }} onClick={(e) => e.stopPropagation()}>
             <button onClick={() => setShowProfileModal(false)} style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
-              <XIcon size={20} weight="duotone" />
+              <XIcon size={20} />
             </button>
             <h3 style={{ marginTop: 0, marginBottom: '0.5rem', color: 'white', fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <UserIcon size={28} color="#60a5fa" weight="duotone" /> Edit Profile
@@ -261,24 +266,35 @@ export default function AdminDashboard() {
               <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Year</label>
-                  <select className="form-input" value={profileYear} onChange={(e) => setProfileYear(e.target.value)} disabled={profileLoading} style={{ color: 'black' }}>
-                    <option value="">Select Year</option>
-                    <option value="First Year">First Year</option>
-                    <option value="Second Year">Second Year</option>
-                    <option value="Third Year">Third Year</option>
-                    <option value="Fourth Year">Fourth Year</option>
+                  <select 
+                    className="form-input" 
+                    value={profileYear} 
+                    onChange={(e) => setProfileYear(e.target.value)} 
+                    disabled={profileLoading} 
+                    // FIX: Removed 'color: black' and let the options style handle text color
+                  >
+                    <option value="" style={optionStyle}>Select Year</option>
+                    <option value="First Year" style={optionStyle}>First Year</option>
+                    <option value="Second Year" style={optionStyle}>Second Year</option>
+                    <option value="Third Year" style={optionStyle}>Third Year</option>
+                    <option value="Fourth Year" style={optionStyle}>Fourth Year</option>
                   </select>
                 </div>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Department</label>
-                  <select className="form-input" value={profileDept} onChange={(e) => setProfileDept(e.target.value)} disabled={profileLoading} style={{ color: 'black' }}>
-                    <option value="">Select Dept</option>
-                    <option value="CSE">CSE</option>
-                    <option value="IT">IT</option>
-                    <option value="ECE">ECE</option>
-                    <option value="EE">EE</option>
-                    <option value="ME">ME</option>
-                    <option value="CE">CE</option>
+                  <select 
+                    className="form-input" 
+                    value={profileDept} 
+                    onChange={(e) => setProfileDept(e.target.value)} 
+                    disabled={profileLoading} 
+                  >
+                    <option value="" style={optionStyle}>Select Dept</option>
+                    <option value="CSE" style={optionStyle}>CSE</option>
+                    <option value="IT" style={optionStyle}>IT</option>
+                    <option value="ECE" style={optionStyle}>ECE</option>
+                    <option value="EE" style={optionStyle}>EE</option>
+                    <option value="ME" style={optionStyle}>ME</option>
+                    <option value="CE" style={optionStyle}>CE</option>
                   </select>
                 </div>
               </div>

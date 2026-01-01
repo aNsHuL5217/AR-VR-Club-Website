@@ -55,7 +55,14 @@ export default function InquiriesManagementPage() {
   const fetchData = async () => {
     try {
       setLoading(true); setError('');
-      const response = await fetch('/api/admin/inquiries', { cache: 'no-store' });
+      
+      // FIX: Add timestamp query param to force fresh data fetch
+      const t = new Date().getTime();
+      const response = await fetch(`/api/admin/inquiries?t=${t}`, { 
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+      });
+      
       const data = await response.json();
       if (data.success) setInquiries(data.data);
       else setError(data.error);
@@ -101,6 +108,9 @@ export default function InquiriesManagementPage() {
 
   const thStyle = { padding: '12px 16px', textAlign: 'left' as const, borderBottom: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', fontSize: '0.85rem', textTransform: 'uppercase' as const };
   const tdStyle = { padding: '16px', borderBottom: '1px solid rgba(255,255,255,0.05)', color: 'white', fontSize: '0.95rem' };
+  
+  // Dark style for select options
+  const optionStyle = { backgroundColor: '#1e293b', color: 'white' };
 
   return (
     <>
@@ -143,10 +153,10 @@ export default function InquiriesManagementPage() {
                 <div style={{ width: '200px' }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Status</label>
                   <select className="form-input" value={filters.status} onChange={(e) => setFilters({ ...filters, status: e.target.value })} style={{ marginBottom: 0 }}>
-                    <option value="" style={{ color: 'black' }}>All Status</option>
-                    <option value="pending" style={{ color: 'black' }}>Pending</option>
-                    <option value="read" style={{ color: 'black' }}>Read</option>
-                    <option value="resolved" style={{ color: 'black' }}>Resolved</option>
+                    <option value="" style={optionStyle}>All Status</option>
+                    <option value="pending" style={optionStyle}>Pending</option>
+                    <option value="read" style={optionStyle}>Read</option>
+                    <option value="resolved" style={optionStyle}>Resolved</option>
                   </select>
                 </div>
                 <button className="btn-outline" onClick={() => setFilters({ status: '', search: '' })} style={{ height: '46px' }}>Clear</button>
@@ -181,9 +191,9 @@ export default function InquiriesManagementPage() {
                             onChange={(e) => handleStatusChange(inq.id, e.target.value)}
                             style={{ background: 'transparent', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '4px 8px', borderRadius: '6px' }}
                           >
-                            <option value="pending" style={{ color: 'black' }}>Pending</option>
-                            <option value="read" style={{ color: 'black' }}>Read</option>
-                            <option value="resolved" style={{ color: 'black' }}>Resolved</option>
+                            <option value="pending" style={optionStyle}>Pending</option>
+                            <option value="read" style={optionStyle}>Read</option>
+                            <option value="resolved" style={optionStyle}>Resolved</option>
                           </select>
                         </td>
                         <td style={tdStyle}>{new Date(inq.created_at).toLocaleDateString()}</td>
@@ -218,7 +228,7 @@ export default function InquiriesManagementPage() {
       </div>
 
       {/* Status Modal */}
-      < StatusModal
+      <StatusModal
         isOpen={statusModal.isOpen}
         type={statusModal.type}
         title={statusModal.title}
@@ -226,8 +236,7 @@ export default function InquiriesManagementPage() {
         onClose={() => {
           setStatusModal(prev => ({ ...prev, isOpen: false }));
           if (statusModal.onClose) statusModal.onClose();
-        }
-        }
+        }}
       />
     </>
   );

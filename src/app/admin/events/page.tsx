@@ -224,7 +224,7 @@ export default function EventManagementPage() {
         }} onClick={() => !submitting && setShowModal(false)}>
           <div className="glass-card" style={{ maxWidth: '600px', width: '90%', maxHeight: '90vh', overflowY: 'auto', position: 'relative' }} onClick={(e) => e.stopPropagation()}>
             <button onClick={() => setShowModal(false)} style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
-              <XIcon size={20} weight="duotone" />
+              <XIcon size={20} />
             </button>
 
             <h3 style={{ marginTop: 0, marginBottom: '1.5rem', color: 'white' }}>{editingEvent ? 'Edit Event' : 'Create New Event'}</h3>

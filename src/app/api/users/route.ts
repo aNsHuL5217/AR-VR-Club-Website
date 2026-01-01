@@ -10,7 +10,9 @@ import { getSupabaseService } from '@/lib/supabase/service';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { UserID, Name, Email, Role, Year, Dept, Designation, MobileNumber } = body;
+    
+    // FIX: Added RollNo and roll_no to destructuring
+    const { UserID, Name, Email, Role, Year, Dept, Designation, MobileNumber, RollNo, roll_no } = body;
 
     if (!UserID || !Name || !Email) {
       return NextResponse.json(
@@ -41,6 +43,8 @@ export async function POST(request: NextRequest) {
         dept: Dept || '',
         designation: Designation || '',
         mobile_number: MobileNumber || '',
+        // FIX: Map either PascalCase or snake_case input to the database field
+        roll_no: RollNo || roll_no || '', 
       });
 
       console.log('User created successfully in Supabase:', newUser.user_id);
