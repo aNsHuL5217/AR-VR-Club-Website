@@ -12,6 +12,9 @@ export const metadata: Metadata = {
   other: {
     'font-awesome': 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
   },
+  verification: {
+    google: 't73gLmUlCT1Gn99-o6J7KYOROQuNE0LxzZ0h4aIwLLE',
+  },
 };
 
 export default function RootLayout({
