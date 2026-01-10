@@ -34,7 +34,7 @@ export default function Navbar() {
             className="nav-logo"
           />
           <div className="brand-text">
-            <span className="brand-title">AR/VR Club</span>
+            <span className="brand-title">AR VR Club | Computer Engineering Department</span>
             <span className="brand-subtitle">GHRCEM</span>
           </div>
         </Link>
