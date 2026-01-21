@@ -87,6 +87,7 @@ export default function DashboardPage() {
   const [profileYear, setProfileYear] = useState('');
   const [profileDept, setProfileDept] = useState('');
   const [profileRollNo, setProfileRollNo] = useState('');
+  const [profileDesignation, setProfileDesignation] = useState('');
   const [profileMobile, setProfileMobile] = useState('');
 
   useEffect(() => {
@@ -130,6 +131,7 @@ export default function DashboardPage() {
       setProfileYear(userProfile.Year || '');
       setProfileDept(userProfile.Dept || '');
       setProfileRollNo(userProfile.RollNo || '');
+      setProfileDesignation(userProfile.Designation || '');
       setProfileMobile(userProfile.MobileNumber || '');
     }
     setShowProfileModal(true);
@@ -148,6 +150,7 @@ export default function DashboardPage() {
           Year: profileYear,
           Dept: profileDept,
           RollNo: profileRollNo,
+          Designation: profileDesignation,
           MobileNumber: profileMobile
         }),
       });
@@ -343,6 +346,16 @@ export default function DashboardPage() {
               </div>
             </div>
 
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+              <div style={{ padding: '10px', background: 'rgba(234, 179, 8, 0.1)', borderRadius: '8px', color: '#facc15' }}>
+                <IdentificationCardIcon size={24} weight="duotone" />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 'bold', color: '#94a3b8', fontSize: '0.85rem' }}>Designation</label>
+                <p style={{ margin: 0, fontSize: '1.1rem', fontWeight: '500', color: 'white' }}>{userProfile?.Designation || authUser?.designation || 'Member'}</p>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -523,6 +536,11 @@ export default function DashboardPage() {
               <div style={{ marginBottom: '1rem' }}>
                 <label style={{ display: 'block', marginBottom: '0.5rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Roll Number</label>
                 <input type="text" className="form-input" value={profileRollNo} onChange={(e) => setProfileRollNo(e.target.value)} placeholder="e.g. TY-CSE-01" required disabled={profileLoading} />
+              </div>
+
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Designation</label>
+                <input type="text" className="form-input" value={profileDesignation} onChange={(e) => setProfileDesignation(e.target.value)} placeholder="e.g. Member, President" disabled={profileLoading} />
               </div>
 
               <div style={{ marginBottom: '1.5rem' }}>

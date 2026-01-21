@@ -31,6 +31,7 @@ export default function AdminDashboard() {
   const [profileYear, setProfileYear] = useState('');
   const [profileDept, setProfileDept] = useState('');
   const [profileRollNo, setProfileRollNo] = useState('');
+  const [profileDesignation, setProfileDesignation] = useState(''); // Added Designation state
   const [profileMobile, setProfileMobile] = useState('');
   const [profileLoading, setProfileLoading] = useState(false);
 
@@ -62,7 +63,8 @@ export default function AdminDashboard() {
     if (authUser) {
       setProfileYear(authUser.year || '');
       setProfileDept(authUser.dept || '');
-      setProfileRollNo(authUser.rollNo || ''); 
+      setProfileRollNo(authUser.rollNo || '');
+      setProfileDesignation(authUser.designation || ''); // Added designation loading
       setProfileMobile(authUser.mobileNumber || '');
     }
   }, [authUser]);
@@ -81,6 +83,7 @@ export default function AdminDashboard() {
           Year: profileYear,
           Dept: profileDept,
           RollNo: profileRollNo,
+          Designation: profileDesignation, // Added designation to payload
           MobileNumber: profileMobile
         }),
       });
@@ -135,10 +138,10 @@ export default function AdminDashboard() {
               </div>
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <button className="btn-outline" onClick={() => setShowPasswordModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <LockKeyIcon size={18} weight="duotone" /> Change Password
+                  <LockKeyIcon size={18} weight="duotone" /> Change Password
                 </button>
                 <button className="btn" onClick={() => setShowProfileModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <PencilSimpleIcon size={18} weight="duotone" /> Edit Profile
+                  <PencilSimpleIcon size={18} weight="duotone" /> Edit Profile
                 </button>
               </div>
             </div>
@@ -231,6 +234,16 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                  <div style={{ padding: '10px', background: 'rgba(234, 179, 8, 0.1)', borderRadius: '8px', color: '#facc15' }}>
+                    <IdentificationCardIcon size={24} weight="duotone" />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 'bold', color: '#94a3b8', fontSize: '0.85rem' }}>Designation</label>
+                    <p style={{ margin: 0, fontSize: '1.1rem', fontWeight: '500', color: 'white' }}>{authUser.designation || 'Not set'}</p>
+                  </div>
+                </div>
+
               </div>
             </div>
 
@@ -247,8 +260,8 @@ export default function AdminDashboard() {
         title={statusModal.title}
         message={statusModal.message}
         onClose={() => {
-            setStatusModal({ ...statusModal, isOpen: false });
-            if (statusModal.onClose) statusModal.onClose();
+          setStatusModal({ ...statusModal, isOpen: false });
+          if (statusModal.onClose) statusModal.onClose();
         }}
       />
 
@@ -272,12 +285,12 @@ export default function AdminDashboard() {
               <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Year</label>
-                  <select 
-                    className="form-input" 
-                    value={profileYear} 
-                    onChange={(e) => setProfileYear(e.target.value)} 
-                    disabled={profileLoading} 
-                    // FIX: Removed 'color: black' and let the options style handle text color
+                  <select
+                    className="form-input"
+                    value={profileYear}
+                    onChange={(e) => setProfileYear(e.target.value)}
+                    disabled={profileLoading}
+                  // FIX: Removed 'color: black' and let the options style handle text color
                   >
                     <option value="" style={optionStyle}>Select Year</option>
                     <option value="First Year" style={optionStyle}>First Year</option>
@@ -288,11 +301,11 @@ export default function AdminDashboard() {
                 </div>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Department</label>
-                  <select 
-                    className="form-input" 
-                    value={profileDept} 
-                    onChange={(e) => setProfileDept(e.target.value)} 
-                    disabled={profileLoading} 
+                  <select
+                    className="form-input"
+                    value={profileDept}
+                    onChange={(e) => setProfileDept(e.target.value)}
+                    disabled={profileLoading}
                   >
                     <option value="" style={optionStyle}>Select Dept</option>
                     <option value="CSE" style={optionStyle}>CSE</option>
@@ -308,6 +321,11 @@ export default function AdminDashboard() {
               <div style={{ marginBottom: '1rem' }}>
                 <label style={{ display: 'block', marginBottom: '0.5rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Roll Number</label>
                 <input type="text" className="form-input" value={profileRollNo} onChange={(e) => setProfileRollNo(e.target.value)} placeholder="e.g. TY-CSE-01" disabled={profileLoading} />
+              </div>
+
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', color: '#cbd5e1', fontSize: '0.9rem' }}>Designation</label>
+                <input type="text" className="form-input" value={profileDesignation} onChange={(e) => setProfileDesignation(e.target.value)} placeholder="e.g. Admin, Coordinator" disabled={profileLoading} />
               </div>
 
               <div style={{ marginBottom: '1.5rem' }}>

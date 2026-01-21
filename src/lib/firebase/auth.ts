@@ -29,6 +29,7 @@ export interface AuthUser {
   dept?: string;
   rollNo?: string;
   mobileNumber?: string;
+  designation?: string;
 }
 
 /**
@@ -182,6 +183,7 @@ export async function getCurrentUserWithRole(): Promise<AuthUser | null> {
           dept: data.data?.Dept || data.data?.dept || '',
           rollNo: data.data?.RollNo || data.data?.roll_no || '',
           mobileNumber: data.data?.MobileNumber || data.data?.mobile_number || '',
+          designation: data.data?.Designation || data.data?.designation || '',
         });
       } catch (error) {
         resolve({

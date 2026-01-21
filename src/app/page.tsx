@@ -177,7 +177,7 @@ export default function HomePage() {
                       <div style={{ padding: '10px', background: 'rgba(59,130,246,0.1)', borderRadius: '8px' }}><MapPinIcon size={24} color="#3b82f6" weight="duotone" /></div>
                       <div>
                         <strong style={{ display: 'block' }}>Location</strong>
-                        <span style={{ color: '#94a3b8' }}>GHRCEM, Wagholi, Pune.</span>
+                        <span style={{ color: '#94a3b8' }}>G H Raisoni College of Engineering and Management ,Gate no.-1200 Domkhel Road, Wagholi ,Pune-412207 ,Maharastra</span>
                       </div>
                     </div>
                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
