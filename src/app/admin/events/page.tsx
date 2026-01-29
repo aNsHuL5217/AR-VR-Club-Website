@@ -12,7 +12,9 @@ import {
   TrashIcon,
   PlusIcon,
   CheckCircleIcon,
-  WarningCircleIcon
+  WarningCircleIcon,
+  CameraIcon,
+  Image as ImageIcon
 } from '@phosphor-icons/react/dist/ssr';
 
 interface Event {
@@ -20,6 +22,16 @@ interface Event {
   MaxCapacity: number; CurrentCount: number; Status: 'Open' | 'Full' | 'Closed' | 'Completed';
   Type: string; ImageURL?: string; CreatedAt: string;
 }
+
+interface Glimpse {
+  id: string;
+  event_id: string;
+  image_url: string;
+  caption?: string;
+  created_at: string;
+}
+
+import { supabase } from '@/lib/supabase/client';
 
 export default function EventManagementPage() {
   const { authUser, loading: authLoading } = useAuth();
@@ -33,6 +45,15 @@ export default function EventManagementPage() {
     Title: '', Description: '', StartTime: '', EndTime: '', MaxCapacity: '', ImageURL: '', Status: 'Open' as any, Type: 'Workshop',
   });
   const [submitting, setSubmitting] = useState(false);
+
+  // Glimpse Modal State
+  const [showGlimpseModal, setShowGlimpseModal] = useState(false);
+  const [currentEventForGlimpses, setCurrentEventForGlimpses] = useState<Event | null>(null);
+  const [glimpses, setGlimpses] = useState<Glimpse[]>([]);
+  const [loadingGlimpses, setLoadingGlimpses] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [newGlimpseCaption, setNewGlimpseCaption] = useState('');
+  const [addingGlimpse, setAddingGlimpse] = useState(false);
 
   // Status Modal State
   const [statusModal, setStatusModal] = useState<{
@@ -68,6 +89,17 @@ export default function EventManagementPage() {
     finally { setLoading(false); }
   };
 
+  const fetchGlimpses = async (eventId: string) => {
+    try {
+      setLoadingGlimpses(true);
+      const response = await fetch(`/api/glimpses?eventId=${eventId}`);
+      const data = await response.json();
+      if (data.success) setGlimpses(data.data);
+      else console.error(data.error);
+    } catch (err: any) { console.error(err.message); }
+    finally { setLoadingGlimpses(false); }
+  };
+
   const handleCreate = () => {
     setEditingEvent(null);
     setFormData({ Title: '', Description: '', StartTime: '', EndTime: '', MaxCapacity: '', ImageURL: '', Status: 'Open', Type: 'Workshop' });
@@ -83,6 +115,90 @@ export default function EventManagementPage() {
       MaxCapacity: event.MaxCapacity.toString(), ImageURL: event.ImageURL || '', Status: event.Status, Type: event.Type || 'Workshop',
     });
     setShowModal(true);
+  };
+
+  const handleManageGlimpses = (event: Event) => {
+    setCurrentEventForGlimpses(event);
+    setGlimpses([]);
+    setShowGlimpseModal(true);
+    fetchGlimpses(event.ID);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0]);
+    }
+  };
+
+  const handleAddGlimpse = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentEventForGlimpses || !selectedFile) return;
+
+    setAddingGlimpse(true);
+    try {
+      // 1. Upload file to Supabase Storage
+      const fileExt = selectedFile.name.split('.').pop();
+      const fileName = `${currentEventForGlimpses.ID}/${Date.now()}.${fileExt}`;
+      const config = {
+        cacheControl: '3600',
+        upsert: false
+      };
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('glimpses')
+        .upload(fileName, selectedFile, config);
+
+      if (uploadError) throw new Error('Upload failed: ' + uploadError.message);
+
+      // 2. Get Public URL
+      const { data: urlData } = supabase.storage
+        .from('glimpses')
+        .getPublicUrl(fileName);
+
+      const publicUrl = urlData.publicUrl;
+
+      // 3. Save to Database
+      const response = await fetch('/api/glimpses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event_id: currentEventForGlimpses.ID,
+          image_url: publicUrl,
+          caption: newGlimpseCaption
+        })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setSelectedFile(null);
+        setNewGlimpseCaption('');
+        // Reset file input
+        const fileInput = document.getElementById('glimpse-file-input') as HTMLInputElement;
+        if (fileInput) fileInput.value = '';
+
+        fetchGlimpses(currentEventForGlimpses.ID);
+      } else {
+        alert('Failed to add glimpse: ' + data.error);
+      }
+    } catch (err: any) {
+      alert('Error: ' + err.message);
+    } finally {
+      setAddingGlimpse(false);
+    }
+  };
+
+  const handleDeleteGlimpse = async (glimpseId: string) => {
+    if (!confirm('Are you sure you want to delete this glimpse?')) return;
+    try {
+      const response = await fetch(`/api/glimpses/${glimpseId}`, { method: 'DELETE' });
+      const data = await response.json();
+      if (data.success) {
+        if (currentEventForGlimpses) fetchGlimpses(currentEventForGlimpses.ID);
+      } else {
+        alert('Failed to delete glimpse: ' + data.error);
+      }
+    } catch (err: any) {
+      alert('Error: ' + err.message);
+    }
   };
 
   const handleDelete = async (eventId: string) => {
@@ -195,6 +311,11 @@ export default function EventManagementPage() {
                         </td>
                         <td style={tdStyle}>
                           <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            {event.Status === 'Completed' && (
+                              <button className="btn-outline" onClick={() => handleManageGlimpses(event)} style={{ padding: '6px 10px' }} title="Manage Glimpses">
+                                <CameraIcon size={16} weight="duotone" />
+                              </button>
+                            )}
                             <button className="btn-outline" onClick={() => handleEdit(event)} style={{ padding: '6px 10px' }} title="Edit">
                               <PencilSimpleIcon size={16} weight="duotone" />
                             </button>
@@ -285,6 +406,73 @@ export default function EventManagementPage() {
                 <button type="submit" className="btn" disabled={submitting}>{submitting ? 'Saving...' : 'Save Event'}</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Glimpse Modal */}
+      {showGlimpseModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.8)', backdropFilter: 'blur(8px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100,
+        }} onClick={() => setShowGlimpseModal(false)}>
+          <div className="glass-card" style={{ maxWidth: '800px', width: '90%', maxHeight: '90vh', overflowY: 'auto', position: 'relative' }} onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setShowGlimpseModal(false)} style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
+              <XIcon size={20} />
+            </button>
+
+            <h3 style={{ marginTop: 0, marginBottom: '0.5rem', color: 'white' }}>Manage Glimpses</h3>
+            <p style={{ color: '#94a3b8', marginBottom: '1.5rem' }}>{currentEventForGlimpses?.Title}</p>
+
+            <form onSubmit={handleAddGlimpse} style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '8px', marginBottom: '2rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr auto', gap: '1rem', alignItems: 'end' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: '#cbd5e1' }}>Select Image</label>
+                  <input
+                    id="glimpse-file-input"
+                    type="file"
+                    accept="image/*"
+                    className="form-input"
+                    onChange={handleFileSelect}
+                    required
+                    style={{ fontSize: '0.9rem', paddingTop: '8px' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: '#cbd5e1' }}>Caption (Optional)</label>
+                  <input type="text" className="form-input" value={newGlimpseCaption} onChange={(e) => setNewGlimpseCaption(e.target.value)} placeholder="Fun times..." style={{ fontSize: '0.9rem' }} />
+                </div>
+                <button type="submit" className="btn" disabled={addingGlimpse || !selectedFile}>
+                  {addingGlimpse ? 'Uploading...' : 'Upload'}
+                </button>
+              </div>
+            </form>
+
+            {loadingGlimpses ? (
+              <div style={{ textAlign: 'center', color: '#94a3b8', padding: '2rem' }}>Loading glimpses...</div>
+            ) : (
+              <div>
+                <h4 style={{ color: 'white', marginBottom: '1rem' }}>Uploaded Photos ({glimpses.length})</h4>
+                {glimpses.length === 0 ? (
+                  <div style={{ textAlign: 'center', color: '#94a3b8', padding: '2rem', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '8px' }}>No glimpses added yet.</div>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '1rem' }}>
+                    {glimpses.map(glimpse => (
+                      <div key={glimpse.id} style={{ position: 'relative', borderRadius: '8px', overflow: 'hidden', aspectRatio: '1/1', background: '#000' }}>
+                        <img src={glimpse.image_url} alt="Glimpse" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)', opacity: 0, transition: '0.2s', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '0.5rem' }} className="glimpse-overlay">
+                          <button onClick={() => handleDeleteGlimpse(glimpse.id)} style={{ background: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer', fontSize: '0.8rem' }}>Delete</button>
+                        </div>
+                        <style jsx>{`
+                          .glimpse-overlay:hover { opacity: 1 !important; }
+                        `}</style>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}

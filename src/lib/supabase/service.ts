@@ -4,8 +4,8 @@
  * Replaces Google Sheets service
  */
 
-import { supabaseAdmin } from './client';
-import { Event, User, Registration, Winner, TABLES } from './types';
+import { supabaseAdmin } from './admin';
+import { Event, User, Registration, Winner, Glimpse, TABLES } from './types';
 import { v4 as uuidv4 } from 'uuid';
 import { formatISO } from 'date-fns';
 
@@ -604,6 +604,68 @@ class SupabaseService {
     } catch (error: any) {
       console.error('Error deleting winner:', error);
       throw new Error(`Failed to delete winner: ${error.message}`);
+    }
+  }
+  // ==================== GLIMPSES ====================
+
+  /**
+   * Get glimpses for an event
+   */
+  async getEventGlimpses(eventId: string): Promise<Glimpse[]> {
+    try {
+      const { data, error } = await supabaseAdmin
+        .from(TABLES.glimpses)
+        .select('*')
+        .eq('event_id', eventId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error: any) {
+      console.error('Error fetching glimpses:', error);
+      throw new Error(`Failed to fetch glimpses: ${error.message}`);
+    }
+  }
+
+  /**
+   * Create a new glimpse
+   */
+  async createGlimpse(glimpseData: Omit<Glimpse, 'id' | 'created_at'>): Promise<Glimpse> {
+    try {
+      const newGlimpse: any = {
+        ...glimpseData,
+        id: uuidv4(),
+        created_at: formatISO(new Date()),
+      };
+
+      const { data, error } = await supabaseAdmin
+        .from(TABLES.glimpses)
+        .insert(newGlimpse)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error: any) {
+      console.error('Error creating glimpse:', error);
+      throw new Error(`Failed to create glimpse: ${error.message}`);
+    }
+  }
+
+  /**
+   * Delete a glimpse
+   */
+  async deleteGlimpse(glimpseId: string): Promise<void> {
+    try {
+      const { error } = await supabaseAdmin
+        .from(TABLES.glimpses)
+        .delete()
+        .eq('id', glimpseId);
+
+      if (error) throw error;
+    } catch (error: any) {
+      console.error('Error deleting glimpse:', error);
+      throw new Error(`Failed to delete glimpse: ${error.message}`);
     }
   }
 }

@@ -39,8 +39,8 @@ export default function Navbar() {
           </div>
         </Link>
 
-        <button 
-          className="mobile-toggle" 
+        <button
+          className="mobile-toggle"
           onClick={() => setShowMenu(!showMenu)}
           aria-label="Toggle Menu"
         >
@@ -48,8 +48,8 @@ export default function Navbar() {
         </button>
 
         <ul className={`nav-links ${showMenu ? 'active' : ''}`}>
-          <li><Link href="/" onClick={closeMenu}>Home</Link></li>
           <li><Link href="/#about" onClick={closeMenu}>About</Link></li>
+          <li><Link href="/#events" onClick={closeMenu}>Events</Link></li>
           <li><Link href="/#team" onClick={closeMenu}>Team</Link></li>
           <li><Link href="/#contact" onClick={closeMenu}>Contact</Link></li>
 

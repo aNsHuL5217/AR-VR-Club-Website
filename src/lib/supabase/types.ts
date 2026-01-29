@@ -53,11 +53,20 @@ export interface Winner {
   created_at: string;
 }
 
+export interface Glimpse {
+  id: string;
+  event_id: string;
+  image_url: string;
+  caption?: string;
+  created_at: string;
+}
+
 // Database table names
 export const TABLES = {
   events: 'events',
   users: 'users',
   registrations: 'registrations',
   winners: 'winners',
+  glimpses: 'event_glimpses',
 } as const;
 

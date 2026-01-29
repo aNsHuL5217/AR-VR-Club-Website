@@ -19,7 +19,7 @@
     "exceljs": "^4.4.0",
     "firebase": "^11.0.1",
     "framer-motion": "^12.23.26",
-    "jspdf": "^3.0.4",
+    "jspdf": "^4.0.0",
     "lottie-react": "^2.4.1",
     "next": "^14.2.5",
     "react": "^18.3.1",

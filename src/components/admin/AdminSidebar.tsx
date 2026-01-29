@@ -3,13 +3,14 @@
 import React from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { 
-  UserIcon, 
-  CalendarBlankIcon, 
-  UsersIcon, 
-  ClipboardTextIcon, 
-  ChatIcon, 
-  WrenchIcon 
+import {
+  UserIcon,
+  CalendarBlankIcon,
+  UsersIcon,
+  ClipboardTextIcon,
+  ChatIcon,
+  WrenchIcon,
+  MegaphoneIcon
 } from '@phosphor-icons/react/dist/ssr';
 
 interface SidebarItem {
@@ -20,6 +21,7 @@ interface SidebarItem {
 
 const sidebarItems: SidebarItem[] = [
   { label: 'Profile', path: '/admin', icon: <UserIcon size={20} weight="duotone" /> },
+  { label: 'Notifications', path: '/admin/notifications', icon: <MegaphoneIcon size={20} weight="duotone" /> },
   { label: 'Event Management', path: '/admin/events', icon: <CalendarBlankIcon size={20} weight="duotone" /> },
   { label: 'Member Management', path: '/admin/members', icon: <UsersIcon size={20} weight="duotone" /> },
   { label: 'Registrations', path: '/admin/registrations', icon: <ClipboardTextIcon size={20} weight="duotone" /> },
@@ -79,7 +81,7 @@ export default function AdminSidebar() {
       <nav style={{ flex: 1, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         {sidebarItems.map((item) => {
           const isActive = pathname === item.path || (item.path !== '/admin' && pathname?.startsWith(item.path));
-          
+
           return (
             <button
               key={item.path}

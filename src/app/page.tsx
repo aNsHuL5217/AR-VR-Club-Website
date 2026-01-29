@@ -6,17 +6,18 @@ import EventsList from '@/components/home/EventsList';
 import ContactForm from '@/components/home/ContactForm';
 import Team from '@/components/home/Team';
 import HeroScene from '@/components/home/HeroScene';
+import Notifications from '@/components/home/Notifications';
 import { motion, useMotionValue, useSpring, AnimatePresence } from 'framer-motion';
-import { 
-  CubeIcon, 
-  StackIcon, 
-  CpuIcon, 
-  GlobeHemisphereWestIcon, 
-  MapPinIcon, 
-  EnvelopeSimpleIcon, 
-  LinkedinLogoIcon, 
-  InstagramLogoIcon, 
-  CaretDownIcon 
+import {
+  CubeIcon,
+  StackIcon,
+  CpuIcon,
+  GlobeHemisphereWestIcon,
+  MapPinIcon,
+  EnvelopeSimpleIcon,
+  LinkedinLogoIcon,
+  InstagramLogoIcon,
+  CaretDownIcon
 } from '@phosphor-icons/react/dist/ssr';
 import { Tilt } from 'react-tilt';
 import Preloader from '@/components/common/Preloader';
@@ -54,66 +55,80 @@ export default function HomePage() {
         ) : (
           <>
             <Navbar />
-            
+
             {/* HERO SECTION */}
-            <header style={{ position: 'relative', height: '100vh', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {/* HERO SECTION */}
+            <header style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: '80px' }}>
               <HeroScene />
-              
-              <div className="container" style={{ position: 'relative', zIndex: 10, textAlign: 'center' }}>
-                <motion.div 
-                  ref={heroCardRef}
-                  initial="hidden" 
-                  animate="visible" 
-                  variants={fadeInUp}
-                  onMouseMove={handleHeroMouseMove}
-                  onMouseLeave={() => setIsHeroHovered(false)}
-                  style={{
-                    position: 'relative', overflow: 'hidden',
-                    background: 'rgba(2, 6, 23, 0.75)', 
-                    backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
-                    padding: '3rem', borderRadius: '24px',
-                    maxWidth: '850px', margin: '0 auto'
-                  }}
-                >
+
+              <div className="container">
+                <div className="hero-grid" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '2rem', alignItems: 'center' }}>
+
+                  {/* LEFT COLUMN: INFO CARD */}
+                  <div style={{ position: 'relative', zIndex: 10, textAlign: 'left', marginLeft: '-50px' }}>
                     <motion.div
+                      ref={heroCardRef}
+                      initial="hidden"
+                      animate="visible"
+                      variants={fadeInUp}
+                      onMouseMove={handleHeroMouseMove}
+                      onMouseLeave={() => setIsHeroHovered(false)}
                       style={{
+                        position: 'relative', overflow: 'hidden',
+                        background: 'rgba(2, 6, 23, 0.75)',
+                        backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
+                        padding: '3rem', borderRadius: '24px',
+                        width: '100%', maxWidth: '100%', margin: '0'
+                      }}
+                    >
+                      <motion.div
+                        style={{
                           position: 'absolute', top: 0, left: 0,
                           x: heroGlowX, y: heroGlowY, translateX: '-50%', translateY: '-50%',
-                          width: '250px', height: '250px', 
+                          width: '250px', height: '250px',
                           background: `conic-gradient(from 0deg, rgba(59, 130, 246, 0.7), rgba(139, 92, 246, 0.7), rgba(236, 72, 153, 0.7), rgba(6, 182, 212, 0.7), rgba(59, 130, 246, 0.7))`,
                           filter: 'blur(90px)', zIndex: 0, pointerEvents: 'none', borderRadius: '50%',
-                      }}
-                      animate={{ opacity: isHeroHovered ? 1 : 0 }}
-                      transition={{ duration: 0.3 }}
-                  />
+                        }}
+                        animate={{ opacity: isHeroHovered ? 1 : 0 }}
+                        transition={{ duration: 0.3 }}
+                      />
 
-                  <div style={{ position: 'relative', zIndex: 2 }}>
-                      <div style={{ display: 'inline-block', padding: '8px 16px', background: 'rgba(255,255,255,0.05)', borderRadius: '50px', border: '1px solid rgba(255,255,255,0.1)', marginBottom: '1.5rem', backdropFilter: 'blur(5px)', color: '#60a5fa', fontSize: '0.9rem' }}>
-                        🚀 AR VR Club | Computer Engineering Department | GHRCEM
+                      <div style={{ position: 'relative', zIndex: 2 }}>
+                        <div style={{ display: 'inline-block', padding: '8px 16px', background: 'rgba(255,255,255,0.05)', borderRadius: '50px', border: '1px solid rgba(255,255,255,0.1)', marginBottom: '1.5rem', backdropFilter: 'blur(5px)', color: '#60a5fa', fontSize: '0.9rem' }}>
+                          🚀 AR VR Club | Computer Engineering Department | GHRCEM
+                        </div>
+
+                        <h1 style={{ fontSize: 'clamp(3rem, 6vw, 5rem)', fontWeight: '800', lineHeight: '1.1', marginBottom: '1.5rem', color: 'var(--text-main)', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
+                          BUILDING THE <br /> <span className="text-gradient">METAVERSE</span>
+                        </h1>
+
+                        <p style={{ fontSize: '1.25rem', color: '#cbd5e1', maxWidth: '700px', margin: '0 auto 2.5rem' }}>
+                          The dynamic student-led community dedicated to exploring the immersive frontiers of Spatial Computing.
+                        </p>
+
+                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                          <a href="https://www.linkedin.com/in/ar-vr-club-ghrcem-pune-a4678b287/" className="btn" target="_blank" rel="noopener noreferrer">Join Community</a>
+                          <a href="#about" className="btn-outline">Explore More</a>
+                        </div>
                       </div>
-                      
-                      <h1 style={{ fontSize: 'clamp(3rem, 6vw, 5rem)', fontWeight: '800', lineHeight: '1.1', marginBottom: '1.5rem', color: 'var(--text-main)', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
-                        BUILDING THE <br /> <span className="text-gradient">METAVERSE</span>
-                      </h1>
-                      
-                      <p style={{ fontSize: '1.25rem', color: '#cbd5e1', maxWidth: '700px', margin: '0 auto 2.5rem' }}>
-                        The dynamic student-led community dedicated to exploring the immersive frontiers of Spatial Computing.
-                      </p>
-                      
-                      <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-                        <a href="https://www.linkedin.com/in/ar-vr-club-ghrcem-pune-a4678b287/" className="btn" target="_blank" rel="noopener noreferrer">Join Community</a>
-                        <a href="#about" className="btn-outline">Explore More</a>
-                      </div>
+                    </motion.div>
                   </div>
-                </motion.div>
+
+                  {/* RIGHT COLUMN: Spacer to push text left */}
+                  <div style={{ height: '0', width: '100%', position: 'relative' }}>
+                    {/* Empty column to reserve grid space if needed, or we can just let it be empty */}
+                  </div>
+
+                </div>
               </div>
+
 
               {/* SCROLL DOWN INDICATOR */}
               <motion.div
-                initial={{ opacity: 1, y: 0 }} 
-                animate={{ y: [0, 10, 0] }} 
+                initial={{ opacity: 1, y: 0 }}
+                animate={{ y: [0, 10, 0] }}
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                 style={{ position: 'absolute', bottom: '40px', left: '50%', transform: 'translateX(-50%)', zIndex: 50, cursor: 'pointer' }}
                 onClick={() => { document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' }); }}
@@ -124,36 +139,53 @@ export default function HomePage() {
               </motion.div>
             </header>
 
+            <style jsx>{`
+              @media (max-width: 1024px) {
+                  .hero-grid {
+                      grid-template-columns: 1fr !important;
+                      text-align: center;
+                  }
+                  .hero-grid > div:first-child {
+                      text-align: center !important;
+                      order: 2;
+                  }
+                   .hero-grid > div:last-child {
+                      order: 1;
+                      height: 400px !important;
+                  }
+              }
+            `}</style>
+
             {/* ABOUT SECTION */}
             <section id="about" className="section container">
               <div className="glow-orb" style={{ top: '20%', left: '-10%' }}></div>
               <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp}>
                 <h2 style={{ fontSize: '2.5rem', textAlign: 'center', marginBottom: '3rem' }}>Why Join Us?</h2>
-                
+
                 <div className="grid-2x2">
-                  <AboutCard 
-                    icon={<CubeIcon size={32} color="#3b82f6" weight="duotone"/>} 
-                    title="Hub for Innovation" 
+                  <AboutCard
+                    icon={<CubeIcon size={32} color="#3b82f6" weight="duotone" />}
+                    title="Hub for Innovation"
                     desc="We are a student-led community at GHRCEM dedicated to exploring and building in the cutting-edge worlds of Augmented and Virtual Reality."
-                    glowColor="rgba(59, 130, 246, 0.4)" 
+                    glowColor="rgba(59, 130, 246, 0.4)"
                   />
-                  <AboutCard 
-                    icon={<StackIcon size={32} color="#8b5cf6" weight="duotone"/>} 
-                    title="Hands-on Learning" 
+                  <AboutCard
+                    icon={<StackIcon size={32} color="#8b5cf6" weight="duotone" />}
+                    title="Hands-on Learning"
                     desc="We bridge the gap between theory and practice by organizing practical workshops, coding jams, and technical seminars on spatial computing."
-                    glowColor="rgba(139, 92, 246, 0.4)" 
+                    glowColor="rgba(139, 92, 246, 0.4)"
                   />
-                  <AboutCard 
-                    icon={<CpuIcon size={32} color="#06b6d4" weight="duotone"/>} 
-                    title="Collaborative Dev" 
+                  <AboutCard
+                    icon={<CpuIcon size={32} color="#06b6d4" weight="duotone" />}
+                    title="Collaborative Dev"
                     desc="The club provides a platform for designers and developers to team up, share ideas, and create immersive projects for the Metaverse."
-                    glowColor="rgba(6, 182, 212, 0.4)" 
+                    glowColor="rgba(6, 182, 212, 0.4)"
                   />
-                  <AboutCard 
-                    icon={<GlobeHemisphereWestIcon size={32} color="#ec4899" weight="duotone"/>} 
-                    title="Future-Ready Skills" 
+                  <AboutCard
+                    icon={<GlobeHemisphereWestIcon size={32} color="#ec4899" weight="duotone" />}
+                    title="Future-Ready Skills"
                     desc="Our mission is to equip students with the industry-relevant skills and tools needed to lead the next generation of digital interaction."
-                    glowColor="rgba(236, 72, 153, 0.4)" 
+                    glowColor="rgba(236, 72, 153, 0.4)"
                   />
                 </div>
               </motion.div>
@@ -161,6 +193,7 @@ export default function HomePage() {
 
             <EventsList />
             <Team />
+            <Notifications />
 
             {/* CONTACT SECTION */}
             <section id="contact" className="section container">
@@ -219,39 +252,39 @@ function AboutCard({ icon, title, desc, glowColor }: { icon: React.ReactNode, ti
   const glowY = useSpring(mouseY, springConfig);
 
   function handleMouseMove({ currentTarget, clientX, clientY }: React.MouseEvent) {
-      const { left, top } = currentTarget.getBoundingClientRect();
-      mouseX.set(clientX - left);
-      mouseY.set(clientY - top);
-      setIsHovered(true);
+    const { left, top } = currentTarget.getBoundingClientRect();
+    mouseX.set(clientX - left);
+    mouseY.set(clientY - top);
+    setIsHovered(true);
   }
 
   function handleMouseLeave() {
-      setIsHovered(false);
+    setIsHovered(false);
   }
 
   const defaultOptions = {
-    reverse: false, max: 10, perspective: 1000, scale: 1.02, speed: 1000, transition: true, axis: null, reset: true, easing: "cubic-bezier(.03,.98,.52,.99)",    
+    reverse: false, max: 10, perspective: 1000, scale: 1.02, speed: 1000, transition: true, axis: null, reset: true, easing: "cubic-bezier(.03,.98,.52,.99)",
   }
 
   return (
     <Tilt options={defaultOptions}>
-      <div 
+      <div
         ref={cardRef}
-        className="glass-card" 
+        className="glass-card"
         style={{ position: 'relative', height: '100%', transformStyle: 'preserve-3d', overflow: 'hidden' }}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
         <motion.div
-            style={{
-                position: 'absolute', top: 0, left: 0,
-                x: glowX, y: glowY, translateX: '-50%', translateY: '-50%',
-                width: '300px', height: '300px',
-                background: `radial-gradient(circle closest-side, ${glowColor}, transparent)`,
-                filter: 'blur(60px)', zIndex: 0, pointerEvents: 'none', borderRadius: '50%',
-            }}
-            animate={{ opacity: isHovered ? 1 : 0 }}
-            transition={{ duration: 0.3 }}
+          style={{
+            position: 'absolute', top: 0, left: 0,
+            x: glowX, y: glowY, translateX: '-50%', translateY: '-50%',
+            width: '300px', height: '300px',
+            background: `radial-gradient(circle closest-side, ${glowColor}, transparent)`,
+            filter: 'blur(60px)', zIndex: 0, pointerEvents: 'none', borderRadius: '50%',
+          }}
+          animate={{ opacity: isHovered ? 1 : 0 }}
+          transition={{ duration: 0.3 }}
         />
 
         <div style={{ position: 'relative', zIndex: 2, transform: 'translateZ(20px)' }}>
